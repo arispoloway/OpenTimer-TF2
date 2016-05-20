@@ -1362,7 +1362,7 @@ stock void DoMapStuff()
 	// Bots go to the other team.
 	if ( !g_iPreferredTeam )
 	{
-		if ( FindEntityByClassname( -1, "info_player_counterterrorist" ) != -1 )
+		if ( FindEntityByClassname( -1, "info_player_teamspawn" ) != -1 )
 		{
 			g_iPreferredTeam = TFTeam_Blue;
 			
