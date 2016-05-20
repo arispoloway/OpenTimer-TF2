@@ -1,5 +1,5 @@
 public Action Command_Admin_ZoneEnd( int client, int args )
-{
+{	
 	if ( client == INVALID_INDEX ) return Plugin_Handled;
 	
 	if ( g_iBuilderIndex != client )

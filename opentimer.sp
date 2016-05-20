@@ -1,5 +1,6 @@
 #include <sourcemod>
 //#include <cstrike>
+#incldue <tf2>
 #include <tf2_stocks>
 #include <sdktools>
 #include <sdkhooks>
@@ -1387,11 +1388,11 @@ stock void DoMapStuff()
 	
 	if ( g_iPreferredTeam == TFTeam_Blue )
 	{
-		strcopy( szSpawn, sizeof( szSpawn ), "info_player_terrorist" );
+		strcopy( szSpawn, sizeof( szSpawn ), "info_player_teamspawn" );
 	}
 	else
 	{
-		strcopy( szSpawn, sizeof( szSpawn ), "info_player_counterterrorist" );
+		strcopy( szSpawn, sizeof( szSpawn ), "info_player_teamspawn" );
 	}
 	// Spawn bot spawnpoints if none exist.
 	if ( g_bIsLoaded[RUN_MAIN] && ( ent = FindEntityByClassname( -1, szSpawn ) ) == -1 )
