@@ -723,7 +723,7 @@ stock void DB_InitializeMapZones()
 	SQL_UnlockDatabase( g_Database );
 	
 #if defined RECORD
-	ServerCommand( "bot_quota %i", g_iNumRec );
+	ServerCommand( "tf_bot_quota %i", g_iNumRec );
 	PrintToServer( CONSOLE_PREFIX ... "Spawning %i record bots...", g_iNumRec );
 #endif
 	

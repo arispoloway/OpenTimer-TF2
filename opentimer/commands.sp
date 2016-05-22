@@ -88,6 +88,7 @@ public Action Command_Help( int client, int args )
 
 public Action Command_Spawn( int client, int args )
 {
+	TFClassType class = TF2_GetClass("TFClass_Soldier");
 	if ( client == INVALID_INDEX ) return Plugin_Handled;
 	
 	if ( IsSpamming( client ) )
@@ -95,16 +96,24 @@ public Action Command_Spawn( int client, int args )
 		PRINTCHAT( client, client, CHAT_PREFIX ... "Please wait before using this command again, thanks." );
 		return Plugin_Handled;
 	}
-	
-	
+	if (class == TFClass_Unknown)
+	{
+	class = TFClass_Soldier;
+	}
+	else
+	{
+		class = TF2_GetPlayerClass (client);
+	}
 	if ( GetClientTeam( client ) == TFTeam_Spectator )
 	{
 		ChangeClientTeam( client, g_iPreferredTeam );
 		TF2_RespawnPlayer( client );
+		TF2_SetPlayerClass(client, class, false, false);
 	}
 	else if ( !IsPlayerAlive( client ) || !g_bIsLoaded[ g_iClientRun[client] ] )
 	{
 		TF2_RespawnPlayer( client );
+		TF2_SetPlayerClass(client, class, false, false);
 	}
 	else
 	{
@@ -277,6 +286,16 @@ public Action Command_Style_Normal( int client, int args )
 	
 	
 	SetPlayerStyle( client, STYLE_NORMAL );
+	
+	return Plugin_Handled;
+}
+
+public Action Command_Style_Bhop( int client, int args )
+{
+	if ( client == INVALID_INDEX ) return Plugin_Handled;
+	
+	//TODO Add bhop on this line
+	SetPlayerStyle( client, STYLE_BHOP );
 	
 	return Plugin_Handled;
 }

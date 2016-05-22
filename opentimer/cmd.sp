@@ -54,6 +54,16 @@ public Action OnPlayerRunCmd(
 				if ( buttons & IN_MOVELEFT || buttons & IN_MOVERIGHT )
 					CheckFreestyle( client );
 			}
+			//case STYLE_BHOP :
+			//{			
+			//}
+			case STYLE_CROUCHED :
+			{
+				if !(buttons & IN_DUCK)
+				{
+					CheckStyleFails( client );
+				}
+			}
 			case STYLE_W :
 			{
 				if ( buttons & IN_BACK || buttons & IN_MOVELEFT || buttons & IN_MOVERIGHT )

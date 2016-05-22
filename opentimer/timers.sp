@@ -50,8 +50,11 @@ public Action Timer_HudTimer( Handle hTimer )
 {
 	static int client;
 	static int target;
+    char hintOutput[256];
+	
 	for ( client = 1; client <= MaxClients; client++ )
 	{
+		StopSound(client, SNDCHAN_STATIC, "UI/hint.wav");
 		if ( !IsClientInGame( client ) ) continue;
 		
 		
@@ -73,39 +76,16 @@ public Action Timer_HudTimer( Handle hTimer )
 			if ( target < 1 || target > MaxClients || !IsPlayerAlive( target ) )
 				continue;
 		}
-		
-		// Side info
-		// Does not work in CS:GO.
-#if !defined CSGO
-		if ( !( g_fClientHideFlags[client] & HIDEHUD_SIDEINFO ) )
-		{
-			ShowKeyHintText( client, target );
-		}
-#endif
-		
+		StopSound(client, SNDCHAN_STATIC, "UI/hint.wav");
 		if ( !( g_fClientHideFlags[client] & HIDEHUD_TIMER ) )
 		{
 #if defined RECORD
 			if ( IsFakeClient( target ) )
 			{
-#if defined CSGO
-				// For CS:GO.
-				static char szTime[9];
-				FormatSeconds( g_flMapBestTime[ g_iClientRun[target] ][ g_iClientStyle[target] ], szTime, sizeof( szTime ), FORMAT_NOHOURS );
-				
-				PrintHintText( client, "Record Bot [%s|%s]\n%s Name: %s\nSpeed: %4.0f",
-					g_szRunName[NAME_LONG][ g_iClientRun[target] ],
-					g_szStyleName[NAME_LONG][ g_iClientStyle[target] ],
-					szTime,
-					g_szRecName[ g_iClientRun[target] ][ g_iClientStyle[target] ],
-					GetClientSpeed( target ) );
-#else // CSGO
-				// For CSS.
-				PrintHintText( client, "Record Bot\n[%s|%s]\n \nSpeed\n%.0f",
+				Format(hintOutput, 256, "Record Bot\n[%s|%s]\n \nSpeed\n%.0f",
 					g_szRunName[NAME_LONG][ g_iClientRun[target] ],
 					g_szStyleName[NAME_LONG][ g_iClientStyle[target] ],
 					GetClientSpeed( target ) );
-#endif // CSGO
 				continue;
 			}
 #endif // RECORD
@@ -113,22 +93,14 @@ public Action Timer_HudTimer( Handle hTimer )
 			if ( !g_bIsLoaded[ g_iClientRun[client] ] )
 			{
 				// No zones were found.
-#if defined CSGO
-				PrintHintText( client, "Speed: %4.0f", GetClientSpeed( target ) );
-#else
-				PrintHintText( client, "Speed\n%.0f", GetClientSpeed( target ) );
-#endif
+				Format(hintOutput, 256, "Speed\n%.0f", GetClientSpeed( target ) );
 				continue;
 			}
 			
 			if ( g_iClientState[target] == STATE_START )
 			{
 				// We are in the start zone.
-#if defined CSGO
-				PrintHintText( client, "Starting Zone\tSpeed: %4.0f", GetClientSpeed( target ) );
-#else
-				PrintHintText( client, "Starting Zone\n \nSpeed\n%.0f", GetClientSpeed( target ) );
-#endif
+				Format(hintOutput, 256, "Starting Zone\n \nSpeed\n%.0f", GetClientSpeed( target ) );
 				continue;
 			}
 			
@@ -146,34 +118,12 @@ public Action Timer_HudTimer( Handle hTimer )
 			}
 			
 			static char szMyTime[SIZE_TIME_HINT];
-			FormatSeconds( flSeconds, szMyTime, sizeof( szMyTime ), FORMAT_DESISECONDS );
-			
-#if defined CSGO
-			if ( g_iClientStyle[client] == STYLE_W || g_iClientStyle[client] == STYLE_A_D )
-			{
-				PrintHintText( client, "%s\t\tSpeed: %4.0f\n%s%s\nJumps: %04i",
-					szMyTime,
-					GetClientSpeed( target ),
-					g_szRunName[NAME_LONG][ g_iClientRun[ target ] ],
-					( g_bIsClientPractising[target] ) ? " (P)" : "", // Practice mode warning
-					g_nClientJumpCount[target] );
-			}
-			else
-			{
-				PrintHintText( client, "%s\t\tSpeed: %4.0f\n%s\t\tL Sync: %.1f%s\nJumps: %04i\tR Sync: %.1f",
-					szMyTime,
-					GetClientSpeed( target ),
-					g_szRunName[NAME_LONG][ g_iClientRun[ target ] ],
-					g_flClientSync[target][STRAFE_LEFT] * 100.0,
-					( g_bIsClientPractising[target] ) ? " (P)" : "", // Practice mode warning
-					g_nClientJumpCount[target],
-					g_flClientSync[target][STRAFE_RIGHT] * 100.0 );
-			}
-#else
+			FormatSeconds( flSeconds, szMyTime, sizeof( szMyTime ), FORMAT_DESISECONDS );			
+
 			// We don't have a map best time! We don't need to show anything else.
 			if ( g_flMapBestTime[ g_iClientRun[target] ][ g_iClientStyle[target] ] <= TIME_INVALID )
 			{
-				PrintHintText( client, "%s\n \nSpeed\n%.0f",
+				Format(hintOutput, 256, "%s\n \nSpeed\n%.0f",
 					szMyTime,
 					GetClientSpeed( target ) );
 				
@@ -201,13 +151,14 @@ public Action Timer_HudTimer( Handle hTimer )
 			
 			// WARNING: Each line has to have something (e.g space), or it will break.
 			// "00:00:00.0C(+00:00:00.0) C CSpeedCXXXX" - [38]
-			PrintHintText( client, "%s\n(%c%s) \n \nSpeed\n%.0f",
+			Format(hintOutput, 256, "%s\n(%c%s) \n \nSpeed\n%.0f",
 				szMyTime,
 				prefix,
 				szBestTime,
 				GetClientSpeed( target ) );
-#endif
 		}
+		StopSound(client, SNDCHAN_STATIC, "UI/hint.wav");
+		PrintHintText( client, hintOutput );
 	}
 	
 	return Plugin_Continue;

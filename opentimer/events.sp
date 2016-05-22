@@ -128,7 +128,7 @@ public Action Timer_ClientSpawn( Handle hTimer, any client )
 		SetEntProp( client, Prop_Send, "m_iHideHUD", HIDE_FLAGS );
 #endif
 	
-	if ( g_fClientHideFlags[client] & HIDEHUD_VM )
+	/*if ( g_fClientHideFlags[client] & HIDEHUD_VM )
 		SetEntProp( client, Prop_Send, "m_bDrawViewmodel", 0 );
 	
 	SetEntProp( client, Prop_Data, "m_nHitboxSet", 2 ); // Don't get damaged from weapons.
@@ -171,6 +171,7 @@ public Action Timer_ClientSpawn( Handle hTimer, any client )
 			}
 		}
 	}
+	*/
 	
 	if ( IsFakeClient( client ) )
 	{
@@ -222,13 +223,13 @@ public Action Event_ClientJump( Handle hEvent, const char[] szEvent, bool bDontB
 	SetEntProp( client, Prop_Data, "m_iHealth", 100 );
 }*/
 
-public Action Event_OnTakeDamage( int victim, int &attacker, int &inflictor, float &flDamage, int &fDamage )
+/*public Action Event_OnTakeDamage( int victim, int &attacker, int &inflictor, float &flDamage, int &fDamage )
 {
 	if ( g_bEZHop ) return Plugin_Handled;
 
 	flDamage = 0.0;
 	return Plugin_Changed;
-}
+}*/
 
 
 //////////

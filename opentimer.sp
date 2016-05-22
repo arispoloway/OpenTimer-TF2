@@ -1,10 +1,11 @@
 #include <sourcemod>
 //#include <cstrike>
-#incldue <tf2>
+#include <tf2>
 #include <tf2_stocks>
 #include <sdktools>
 #include <sdkhooks>
 #include <basecomm> // To check if client is gagged.
+#include <halflife>
 
 
 #define PLUGIN_VERSION	"1.4.6"
@@ -272,6 +273,8 @@ enum { NAME_LONG = 0, NAME_SHORT, NUM_NAMES };
 enum
 {
 	STYLE_NORMAL = 0,
+	STYLE_BHOP,
+	STYLE_CROUCHED,
 	STYLE_SIDEWAYS,
 	STYLE_W,
 	STYLE_REAL_HSW,
@@ -583,6 +586,9 @@ public void OnPluginStart()
 	RegConsoleCmd( "sm_normal", Command_Style_Normal );
 	RegConsoleCmd( "sm_n", Command_Style_Normal );
 	
+	RegConsoleCmd( "sm_bhop", Command_Style_Bhop );
+	RegConsoleCmd( "sm_bh", Command_Style_Bhop );
+	
 	RegConsoleCmd( "sm_sideways", Command_Style_Sideways );
 	RegConsoleCmd( "sm_sw", Command_Style_Sideways );
 	
@@ -651,8 +657,8 @@ public void OnPluginStart()
 	RegConsoleCmd( "sm_credits", Command_Credits );
 	
 	// Blocked commands.
-	RegConsoleCmd( "joinclass", Command_JoinClass );
-	RegConsoleCmd( "jointeam", Command_JoinTeam );
+	//RegConsoleCmd( "joinclass", Command_JoinClass );
+	//RegConsoleCmd( "jointeam", Command_JoinTeam );
 	
 #if defined ANTI_DOUBLESTEP
 	RegConsoleCmd( "sm_ds", Command_Doublestep );
@@ -772,7 +778,7 @@ public void OnMapStart()
 {
 #if defined RECORD
 	// No bots until we have records.
-	ServerCommand( "bot_quota 0" );
+	ServerCommand( "tf_bot_quota 0" );
 	g_iNumRec = 0;
 #endif
 	
@@ -903,7 +909,7 @@ public void OnClientPutInServer( int client )
 	g_flClientStartTime[client] = TIME_INVALID;
 	
 	
-	SDKHook( client, SDKHook_OnTakeDamage, Event_OnTakeDamage );
+	//SDKHook( client, SDKHook_OnTakeDamage, Event_OnTakeDamage );
 	SDKHook( client, SDKHook_WeaponDropPost, Event_WeaponDropPost ); // No more weapon dropping.
 	SDKHook( client, SDKHook_SetTransmit, Event_ClientTransmit ); // Has to be hooked to everybody(?)
 	
@@ -1046,7 +1052,7 @@ public void Event_PostThinkPost( int client )
 			g_bIsClientPractising[client] = true;
 		}
 		// No prespeeding.
-		else if ( !g_bPreSpeed && GetClientSpeed( client ) > MAX_PRESPEED && GetEntityMoveType( client ) != MOVETYPE_NOCLIP )
+		/*else if ( !g_bPreSpeed && GetClientSpeed( client ) > MAX_PRESPEED && GetEntityMoveType( client ) != MOVETYPE_NOCLIP )
 		{
 			if ( !IsSpamming( client ) )
 			{
@@ -1057,7 +1063,7 @@ public void Event_PostThinkPost( int client )
 			
 			return;
 		}
-		
+		*/
 		g_flClientStartTime[client] = GetEngineTime();
 		
 		
@@ -1203,6 +1209,7 @@ stock void CheckFreestyle( int client )
 		PRINTCHATV( client, client, CHAT_PREFIX ... "That key (combo) is not allowed in \x03%s"...CLR_TEXT..."!", g_szStyleName[NAME_LONG][ g_iClientStyle[client] ] );
 	}
 	
+	//TODO - change g_vecNull to allow falling
 	TeleportEntity( client, NULL_VECTOR, NULL_VECTOR, g_vecNull );
 }
 
@@ -1528,6 +1535,7 @@ stock void SetPlayerStyle( int client, int style )
 		TeleportPlayerToStart( client );
 	}
 	
+	//TODO Disable bhop on this line
 	g_iClientStyle[client] = style;
 	
 	if ( style == STYLE_VEL )
@@ -1648,7 +1656,7 @@ stock void CopyRecordToPlayback( int client )
 		// Create new if one doesn't exist.
 		// Check OnClientPutInServer() for that.
 		g_iNumRec++;
-		ServerCommand( "bot_quota %i", g_iNumRec );
+		ServerCommand( "tf_bot_quota %i", g_iNumRec );
 	}
 }
 
