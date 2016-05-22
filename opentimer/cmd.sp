@@ -198,14 +198,25 @@ public Action OnPlayerRunCmd(
 #if defined RECORD
 		if ( g_bClientRecording[client] && g_hClientRecording[client] != null )
 		{
-			// Remove distracting buttons.
-			iFrame[FRAME_FLAGS] = ( buttons & IN_DUCK ) ? FRAMEFLAG_CROUCH : 0;
-			
+			iFrame[FRAME_FLAGS] = 0;
+	
+			if (buttons & IN_DUCK)
+			{
+				iFrame[FRAME_FLAGS] += FRAMEFLAG_CROUCH;
+			}
+			if (buttons & IN_ATTACK)
+			{
+				iFrame[FRAME_FLAGS] += FRAMEFLAG_ATTACK;
+			}
+			if (buttons & IN_ATTACK2)
+			{
+				iFrame[FRAME_FLAGS] += FRAMEFLAG_ATTACK2;
+			}
+						
 			ArrayCopy( angles, iFrame[FRAME_ANGLES], 2 );
 			
 			GetEntPropVector( client, Prop_Data, "m_vecOrigin", vecPos );
-			ArrayCopy( vecPos, iFrame[FRAME_POS], 3 );
-			
+			ArrayCopy( vecPos, iFrame[FRAME_POS], 3 );			
 			
 			// This is only required to check if player's recording is too long.
 			g_nClientTick[client]++;
@@ -309,8 +320,21 @@ public Action OnPlayerRunCmd(
 		GetArrayArray( g_hRec[ g_iClientRun[client] ][ g_iClientStyle[client] ], g_nClientTick[client], iFrame, view_as<int>(FrameInfo) );
 		
 		// Do buttons.
-		buttons = ( iFrame[FRAME_FLAGS] & FRAMEFLAG_CROUCH ) ? IN_DUCK : 0;
-		
+		buttons = 0;
+	
+		if (iFrame[FRAME_FLAGS] & IN_DUCK)
+		{
+			buttons += FRAMEFLAG_CROUCH;
+		}
+		if (iFrame[FRAME_FLAGS] & IN_ATTACK)
+		{
+			buttons += FRAMEFLAG_ATTACK;
+		}
+		if (iFrame[FRAME_FLAGS] & IN_ATTACK2)
+		{
+			buttons += FRAMEFLAG_ATTACK2;
+		}
+			
 		vel = g_vecNull;
 		ArrayCopy( iFrame[FRAME_ANGLES], angles, 2 );
 		
