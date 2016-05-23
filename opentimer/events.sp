@@ -148,11 +148,12 @@ public Action Event_ClientSpawn( Handle hEvent, const char[] szEvent, bool bDont
 }
 
 // Continued from above event.
+
 public Action Timer_ClientSpawn( Handle hTimer, any client )
 {
 	if ( !(client = GetClientOfUserId( client )) ) return Plugin_Handled;
 	
-	if ( g_fClientHideFlags[client] & HIDEHUD_VM )
+	/*if ( g_fClientHideFlags[client] & HIDEHUD_VM )
 		SetEntProp( client, Prop_Send, "m_bDrawViewmodel", 0 );
 	
 	// Hide guns so they are not just floating around
@@ -190,7 +191,8 @@ public Action Timer_ClientSpawn( Handle hTimer, any client )
 				}
 			}
 		}
-	}
+	}*/
+	
 	
 	if ( IsFakeClient( client ) )
 	{

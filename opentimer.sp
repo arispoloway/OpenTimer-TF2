@@ -822,8 +822,8 @@ public void OnPluginStart()
 	RegConsoleCmd( "sm_credits", Command_Credits );
 	
 	// Blocked commands.
-	RegConsoleCmd( "joinclass", Command_JoinClass );
-	RegConsoleCmd( "jointeam", Command_JoinTeam );
+	//RegConsoleCmd( "joinclass", Command_JoinClass );
+	//RegConsoleCmd( "jointeam", Command_JoinTeam );
 	
 #if defined ANTI_DOUBLESTEP
 	RegConsoleCmd( "sm_ds", Command_Doublestep );
@@ -882,7 +882,7 @@ public void OnPluginStart()
 	
 	SetConVarFlags( g_ConVar_AirAccelerate, flags );
 	
-	
+	/*
 #if defined RECORD
 	// BOTS
 	g_ConVar_BotQuota = FindConVar( "bot_quota" );
@@ -906,7 +906,7 @@ public void OnPluginStart()
 		delete hCvar;
 	}
 #endif
-	
+	*/
 	
 	g_flTickRate = 1 / GetTickInterval();
 	
