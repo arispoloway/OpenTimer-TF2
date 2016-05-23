@@ -1,40 +1,58 @@
-static char g_szBuffer[256];
-
-stock void PrintColorChat( int target, int author, const char[] szMsg, any ... )
+stock void PrintColorChat( int target, const char[] szMsg, any ... )
 {
-	VFormat( g_szBuffer, sizeof( g_szBuffer ), szMsg, 4 );
+	char szBuffer[256];
+	VFormat( szBuffer, sizeof( szBuffer ), szMsg, 3 );
 	
-	SendColorMessage( target, author, g_szBuffer );
+	SendColorMessage( target, target, szBuffer );
 }
 
-stock void PrintColorChatAll( int author, bool bAllowHide, const char[] szMsg, any ... )
+stock void PrintColorChatAll( int author, const char[] szMsg, any ... )
 {
-	VFormat( g_szBuffer, sizeof( g_szBuffer ), szMsg, 4 );
-	
-#if defined CHAT
-	if ( bAllowHide )
-	{
-		for ( int client = 1; client <= MaxClients; client++ )
-			if ( IsClientInGame( client ) && !( g_fClientHideFlags[client] & HIDEHUD_CHAT ) )
-			{
-				SendColorMessage( client, author, g_szBuffer );
-			}
-		return;
-	}
-#endif
+	char szBuffer[256];
+	VFormat( szBuffer, sizeof( szBuffer ), szMsg, 3 );
 	
 	for ( int client = 1; client <= MaxClients; client++ )
-		if ( IsClientInGame( client ) )
+		if ( IsClientInGame( client ) && ( client == author || !(g_fClientHideFlags[client] & HIDEHUD_CHAT) ) )
 		{
-			SendColorMessage( client, author, g_szBuffer );
+			if ( author == 0 )
+			{
+				SendColorMessage( client, client, szBuffer );
+			}
+			else
+			{
+				SendColorMessage( client, author, szBuffer );
+			}
 		}
 }
 
-stock void SendColorMessage( int target, int author, const char szMsg[256] )
+stock void SendFade( int target, int flags = ( 1 << 0 ), int duration, const int color[4] )
 {
-	// If we don't use the reliable channel, sometimes clients won't receive the message (?).
-	// Happens more than you'd normally think.
-	Handle hMsg = StartMessageOne( "SayText2", target );
+	Handle hMsg = StartMessageOne( "Fade", target );
+	
+	if ( hMsg != null )
+	{
+#if defined CSGO
+		PbSetInt( hMsg, "duration", duration );
+		PbSetInt( hMsg, "hold_time", 0 );
+		PbSetInt( hMsg, "flags", flags );
+		PbSetColor( hMsg, "clr", color );
+#else
+		BfWriteShort( hMsg, duration );
+		BfWriteShort( hMsg, 0 );
+		BfWriteShort( hMsg, flags );
+		BfWriteByte( hMsg, color[0] );
+		BfWriteByte( hMsg, color[1] );
+		BfWriteByte( hMsg, color[2] );
+		BfWriteByte( hMsg, color[3] );
+#endif
+		
+		EndMessage();
+	}
+}
+
+stock void SendColorMessage( int target, int author, const char[] szMsg )
+{
+	Handle hMsg = StartMessageOne( "SayText2", target, USERMSG_BLOCKHOOKS );
 	
 	if ( hMsg != null )
 	{
@@ -52,8 +70,8 @@ stock void SendColorMessage( int target, int author, const char szMsg[256] )
 #else
 		BfWriteByte( hMsg, author );
 		
-		// false for no console print. We do this manually because it would display the hex codes in the console.
-		BfWriteByte( hMsg, false );
+		// false for no console print. If false, no chat sound is played.
+		BfWriteByte( hMsg, true );
 		
 		BfWriteString( hMsg, szMsg );
 #endif
@@ -74,60 +92,90 @@ stock void ShowKeyHintText( int client, int target )
 	
 	if ( hMsg != null )
 	{
-		static char szTime[SIZE_TIME_RECORDS];
-		static char szText[120];
+		static char szTime[TIME_SIZE_DEF];
+		static char szText[135];
 		
-		if ( IsFakeClient( target ) ) 
+		static int run;
+		static int style;
+		static int mode;
+		run = g_iClientRun[target];
+		style = g_iClientStyle[target];
+		mode = g_iClientMode[target];
+		
+		if ( !IsFakeClient( target ) )
 		{
-#if defined RECORD
-			FormatSeconds( g_flMapBestTime[ g_iClientRun[target] ][ g_iClientStyle[target] ], szTime, sizeof( szTime ) );
-			
-			FormatEx( szText, sizeof( szText ), "Name: %s\nTime: %s", g_szRecName[ g_iClientRun[target] ][ g_iClientStyle[target] ], szTime );
-#else
-			FormatEx( szText, sizeof( szText ), "I am a bot! :)" );
-#endif
-		}
-		else
-		{
-			if ( g_flClientBestTime[target][ g_iClientRun[target] ][ g_iClientStyle[target] ] != TIME_INVALID )
+			if ( g_flClientBestTime[target][run][style][mode] != TIME_INVALID )
 			{
-				FormatSeconds( g_flClientBestTime[target][ g_iClientRun[target] ][ g_iClientStyle[target] ], szTime, sizeof( szTime ) );
+				FormatSeconds( g_flClientBestTime[target][run][style][mode], szTime );
 			}
-			else FormatEx( szTime, sizeof( szTime ), "N/A" );
+			else
+			{
+				FormatEx( szTime, sizeof( szTime ), "N/A" );
+			}
 			
+			
+			static char szStylePostFix[STYLEPOSTFIX_LENGTH];
+			GetStylePostfix( g_iClientMode[target], szStylePostFix );
 			
 			if ( g_iClientState[target] != STATE_START )
 			{
-				if ( g_iClientStyle[client] == STYLE_W || g_iClientStyle[client] == STYLE_A_D )
+				if ( style == STYLE_W || style == STYLE_A_D )
 				{
-					FormatEx( szText, sizeof( szText ), "Jumps: %i\n \nStyle: %s\nPB: %s\n%s",
-						g_nClientJumpCount[target],
-						g_szStyleName[NAME_LONG][ g_iClientStyle[target] ], // Show our style.
+					FormatEx( szText, sizeof( szText ), "Jumps: %i\n \nStyle: %s%s\nPB: %s\n%s",
+						g_nClientJumps[target],
+						g_szStyleName[NAME_LONG][style], // Show our style.
+						szStylePostFix, // Don't forget postfix
 						szTime,
-						( g_bIsClientPractising[target] ? "(Practice Mode)" : "" ) ); // Have a practice mode warning for players!
+						( g_bClientPractising[target] ? "(Practice Mode)" : "" ) ); // Have a practice mode warning for players!
 				}
 				else
 				{
-					// "Strafes: XXXXXCL Sync: 100.0CL Sync: 100.0CR Sync: 100.0CJumps: XXXXC CStyle: Real HSWCPB: 00:00:00.00C(Practice Mode)"
-					FormatEx( szText, sizeof( szText ), "Strafes: %i\nL Sync: %.1f\nR Sync: %.1f\nJumps: %i\n \nStyle: %s\nPB: %s\n%s",
-						g_nClientStrafeCount[target],
+					// "Strafes: XXXXXCL Sync: 100.0CL Sync: 100.0CR Sync: 100.0CJumps: XXXXC CStyle: Real HSW ScrollCPB: 00:00:00.00C(Practice Mode)"
+					FormatEx( szText, sizeof( szText ), "Strafes: %i\nL Sync: %3.1f\nR Sync: %3.1f\nJumps: %i\n \nStyle: %s%s\nPB: %s\n%s",
+						g_nClientStrafes[target],
 						g_flClientSync[target][STRAFE_LEFT] * 100.0, // Left Sync
 						g_flClientSync[target][STRAFE_RIGHT] * 100.0, // Right Sync
-						g_nClientJumpCount[target],
-						g_szStyleName[NAME_LONG][ g_iClientStyle[target] ],
+						g_nClientJumps[target],
+						g_szStyleName[NAME_LONG][style],
+						szStylePostFix,
 						szTime,
-						( g_bIsClientPractising[target] ? "(Practice Mode)" : "" ) );
+						( g_bClientPractising[target] ? "(Practice Mode)" : "" ) );
 				}
 			}
 			else
 			{
-				FormatEx( szText, sizeof( szText ), "Style: %s\nPB: %s\n%s",
-					g_szStyleName[NAME_LONG][ g_iClientStyle[target] ],
+				FormatEx( szText, sizeof( szText ), "Style: %s%s\nPB: %s\n%s",
+					g_szStyleName[NAME_LONG][style],
+					szStylePostFix,
 					szTime,
-					( g_bIsClientPractising[target] ? "(Practice Mode)" : "" ) );
+					( g_bClientPractising[target] ? "(Practice Mode)" : "" ) );
 			}
 		}
-		
+		else
+		{
+#if defined RECORD
+			FormatSeconds( g_flMapBestTime[run][style][mode], szTime );
+			
+			if ( style == STYLE_W || style == STYLE_A_D )
+			{
+				FormatEx( szText, sizeof( szText ), "Name: %s\nTime: %s\n \nJumps: %i \n ",
+					g_szRecName[run][style][mode],
+					szTime,
+					g_nRecJumps[run][style][mode] );
+			}
+			else
+			{
+				FormatEx( szText, sizeof( szText ), "Name: %s\nTime: %s\n \nJumps: %i\nStrafes: %i",
+					g_szRecName[run][style][mode],
+					szTime,
+					g_nRecJumps[run][style][mode],
+					g_nRecStrafes[run][style][mode] );
+			}
+
+#else
+			FormatEx( szText, sizeof( szText ), "I am a bot! :)" );
+#endif
+		}
 		/*static const float vec[2] = { 0.8, 0.05 };
 		static const int color[4] = { 255, 255, 255, 255 };
 		

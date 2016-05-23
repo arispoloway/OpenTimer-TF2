@@ -1,205 +1,214 @@
 public Action Command_ToggleHUD( int client, int args )
 {
-	if ( client == INVALID_INDEX ) return Plugin_Handled;
+	if ( !client ) return Plugin_Handled;
 	
 	
-	SetEntProp( client, Prop_Data, "m_iHideHUD", 0 );
-	Menu mMenu = CreateMenu( Handler_Hud );
-	SetMenuTitle( mMenu, "HUD Menu\n " );
+	Menu mMenu = new Menu( Handler_Hud );
 	
+	mMenu.SetTitle( "Hide Menu\n " );
+	
+	mMenu.AddItem( "time", ( g_fClientHideFlags[client] & HIDEHUD_TIMER )			? "Timer: OFF" : "Timer: ON" );
 #if !defined CSGO
-	AddMenuItem( mMenu, "_", ( g_fClientHideFlags[client] & HIDEHUD_HUD )		? "HUD: OFF" : "HUD: ON" );
+	mMenu.AddItem( "info", ( g_fClientHideFlags[client] & HIDEHUD_SIDEINFO ) 		? "Sidebar: OFF" : "Sidebar: ON" );
 #endif
 
-	AddMenuItem( mMenu, "_", ( g_fClientHideFlags[client] & HIDEHUD_VM )		? "Viewmodel: OFF" : "Viewmodel: ON" );
-	AddMenuItem( mMenu, "_", ( g_fClientHideFlags[client] & HIDEHUD_PLAYERS )	? "Players: OFF" : "Players: ON" );
-	AddMenuItem( mMenu, "_", ( g_fClientHideFlags[client] & HIDEHUD_BOTS )		? "Bots: OFF" : "Bots: ON" );
-	AddMenuItem( mMenu, "_", ( g_fClientHideFlags[client] & HIDEHUD_TIMER )		? "Timer: OFF" : "Timer: ON" );
-	
-#if !defined CSGO
-	AddMenuItem( mMenu, "_", ( g_fClientHideFlags[client] & HIDEHUD_SIDEINFO ) 	? "Sidebar: OFF" : "Sidebar: ON" );
-#endif
+	mMenu.AddItem( "cpi", ( g_fClientHideFlags[client] & HIDEHUD_CPINFO )			? "CP Info: OFF" : "CP Info: ON" );
 
-#if defined CHAT
-	AddMenuItem( mMenu, "_", ( g_fClientHideFlags[client] & HIDEHUD_CHAT )		? "Chat: OFF" : "Chat: ON" );
-#endif
+	mMenu.AddItem( "zmsg", ( g_fClientHideFlags[client] & HIDEHUD_ZONEMSG )			? "Zone Messages: OFF" : "Zone Messages: ON" );
+
+	mMenu.AddItem( "vm", ( g_fClientHideFlags[client] & HIDEHUD_VM )				? "Viewmodel: OFF" : "Viewmodel: ON" );
+	mMenu.AddItem( "ply", ( g_fClientHideFlags[client] & HIDEHUD_PLAYERS )			? "Players: OFF" : "Players: ON" );
+	mMenu.AddItem( "bot", ( g_fClientHideFlags[client] & HIDEHUD_BOTS )				? "Bots: OFF" : "Bots: ON" );
+	mMenu.AddItem( "zon", ( g_fClientHideFlags[client] & HIDEHUD_SHOWZONES )		? "Show All Zones: ON" : "Show All Zones: OFF" );
+	mMenu.AddItem( "recs", ( g_fClientHideFlags[client] & HIDEHUD_RECSOUNDS )		? "Record Sounds: OFF" : "Record Sounds: ON" );
+	mMenu.AddItem( "fla", ( g_fClientHideFlags[client] & HIDEHUD_STYLEFLASH )		? "Style Fail Flash: OFF" : "Style Fail Flash: ON" );
+
+	mMenu.AddItem( "chat", ( g_fClientHideFlags[client] & HIDEHUD_CHAT )		? "Chat: OFF" : "Chat: ON" );
 	
-	//SetMenuExitButton( mMenu, true );
-	DisplayMenu( mMenu, client, 8 );
+	mMenu.Display( client, MENU_TIME_FOREVER );
 	
 	return Plugin_Handled;
 }
 
 public int Handler_Hud( Menu mMenu, MenuAction action, int client, int item )
 {
-	switch ( action )
+	if ( action == MenuAction_End ) { delete mMenu; return 0; }
+	if ( action != MenuAction_Select ) return 0;
+	
+	
+	char szItem[5];
+	if ( !GetMenuItem( mMenu, item, szItem, sizeof( szItem ) ) ) return 0;
+	
+	
+	if ( StrEqual( szItem, "vm" ) )
 	{
-		case MenuAction_End :
+		if ( g_fClientHideFlags[client] & HIDEHUD_VM )
 		{
-			if ( client > 0 )
-			{
-				if ( g_fClientHideFlags[client] & HIDEHUD_HUD )
-					SetEntProp( client, Prop_Data, "m_iHideHUD", HIDE_FLAGS );
-				else
-					ClientCommand( client, "sm_hud" );
-			}
+			g_fClientHideFlags[client] &= ~HIDEHUD_VM;
 			
-			delete mMenu;
+			SetEntProp( client, Prop_Send, "m_bDrawViewmodel", 1 );
+			
+			PRINTCHAT( client, CHAT_PREFIX..."Restored viewmodel!" );
 		}
-		case MenuAction_Select :
+		else
 		{
-			char szItem[2];
+			g_fClientHideFlags[client] |= HIDEHUD_VM;
 			
-			if ( !GetMenuItem( mMenu, item, szItem, sizeof( szItem ) ) || szItem[0] != '_' )
-			{
-				return 0;
-			}
+			SetEntProp( client, Prop_Send, "m_bDrawViewmodel", 0 );
 			
-			// We selected an item!
-			switch ( item )
-			{
-#if !defined CSGO
-				case 0 :
-				{
-					if ( g_fClientHideFlags[client] & HIDEHUD_HUD )
-					{
-						g_fClientHideFlags[client] &= ~HIDEHUD_HUD;
-						
-						SetEntProp( client, Prop_Send, "m_iHideHUD", 0 );
-						
-						PRINTCHAT( client, client, CHAT_PREFIX ... "Restored HUD." );
-					}
-					else
-					{
-						g_fClientHideFlags[client] |= HIDEHUD_HUD;
-						
-						SetEntProp( client, Prop_Send, "m_iHideHUD", HIDE_FLAGS );
-						
-						PRINTCHAT( client, client, CHAT_PREFIX ... "Your HUD is now partially hidden! For no radar: \x03cl_radaralpha 0" );
-					}
-				}
-#endif
-
-#if !defined CSGO
-				case 1 :
-#else
-				case 0 :
-#endif
-				{
-					if ( g_fClientHideFlags[client] & HIDEHUD_VM )
-					{
-						g_fClientHideFlags[client] &= ~HIDEHUD_VM;
-						
-						SetEntProp( client, Prop_Send, "m_bDrawViewmodel", 1 );
-					}
-					else
-					{
-						g_fClientHideFlags[client] |= HIDEHUD_VM;
-						
-						SetEntProp( client, Prop_Send, "m_bDrawViewmodel", 0 );
-					}
-				}
-#if !defined CSGO
-				case 2 :
-#else
-				case 1 :
-#endif
-				{
-					if ( g_fClientHideFlags[client] & HIDEHUD_PLAYERS )
-					{
-						g_fClientHideFlags[client] &= ~HIDEHUD_PLAYERS;
-				
-						PRINTCHAT( client, client, CHAT_PREFIX ... "All players show up again!" );
-					}
-					else
-					{
-						g_fClientHideFlags[client] |= HIDEHUD_PLAYERS;
-						
-						PRINTCHAT( client, client, CHAT_PREFIX ... "All players are hidden!" );
-					}
-				}
-#if !defined CSGO
-				case 3 :
-#else
-				case 2 :
-#endif
-				{
-					if ( g_fClientHideFlags[client] & HIDEHUD_BOTS )
-					{
-						g_fClientHideFlags[client] &= ~HIDEHUD_BOTS;
-				
-						PRINTCHAT( client, client, CHAT_PREFIX ... "Record bots show up again!" );
-					}
-					else
-					{
-						g_fClientHideFlags[client] |= HIDEHUD_BOTS;
-						
-						PRINTCHAT( client, client, CHAT_PREFIX ... "Record bots are now hidden!" );
-					}
-				}
-#if !defined CSGO
-				case 4 :
-#else
-				case 3 :
-#endif
-				{
-					if ( g_fClientHideFlags[client] & HIDEHUD_TIMER )
-					{
-						g_fClientHideFlags[client] &= ~HIDEHUD_TIMER;
-						
-						PRINTCHAT( client, client, CHAT_PREFIX ... "Your timer is back!" );
-					}
-					else
-					{
-						g_fClientHideFlags[client] |= HIDEHUD_TIMER;
-						
-						PRINTCHAT( client, client, CHAT_PREFIX ... "Your timer is now hidden!" );
-					}
-				}
-#if !defined CSGO
-				case 5 :
-				{
-					if ( g_fClientHideFlags[client] & HIDEHUD_SIDEINFO )
-					{
-						g_fClientHideFlags[client] &= ~HIDEHUD_SIDEINFO;
-						
-						PRINTCHAT( client, client, CHAT_PREFIX ... "Sidebar enabled!" );
-					}
-					else
-					{
-						g_fClientHideFlags[client] |= HIDEHUD_SIDEINFO;
-						
-						PRINTCHAT( client, client, CHAT_PREFIX ... "Sidebar is now hidden!" );
-					}
-				}
-#endif // CSGO
-
-#if defined CHAT
-
-#if !defined CSGO
-				case 6 :
-#else // CSGO
-				case 4 :
-#endif // CSGO
-				{
-					if ( g_fClientHideFlags[client] & HIDEHUD_CHAT )
-					{
-						g_fClientHideFlags[client] &= ~HIDEHUD_CHAT;
-						
-						PRINTCHAT( client, client, CHAT_PREFIX ... "Chat enabled!" );
-					}
-					else
-					{
-						g_fClientHideFlags[client] |= HIDEHUD_CHAT;
-						
-						PRINTCHAT( client, client, CHAT_PREFIX ... "Chat is now hidden!" );
-					}
-				}
-#endif // CHAT
-			}
+			PRINTCHAT( client, CHAT_PREFIX..."Your viewmodel is now hidden!" );
+		}
+	}
+	else if ( StrEqual( szItem, "zmsg" ) )
+	{
+		if ( g_fClientHideFlags[client] & HIDEHUD_ZONEMSG )
+		{
+			g_fClientHideFlags[client] &= ~HIDEHUD_ZONEMSG;
 			
-			if ( !DB_SaveClientData( client ) )
-				PRINTCHAT( client, client, CHAT_PREFIX ... "Couldn't save your settings!" );
+			PRINTCHAT( client, CHAT_PREFIX..."Zone messages show up again!" );
+		}
+		else
+		{
+			g_fClientHideFlags[client] |= HIDEHUD_ZONEMSG;
+			
+			PRINTCHAT( client, CHAT_PREFIX..."Zone messages are now off." );
+		}
+	}
+	else if ( StrEqual( szItem, "ply" ) )
+	{
+		if ( g_fClientHideFlags[client] & HIDEHUD_PLAYERS )
+		{
+			g_fClientHideFlags[client] &= ~HIDEHUD_PLAYERS;
+	
+			PRINTCHAT( client, CHAT_PREFIX..."All players show up again!" );
+		}
+		else
+		{
+			g_fClientHideFlags[client] |= HIDEHUD_PLAYERS;
+			
+			PRINTCHAT( client, CHAT_PREFIX..."All players are hidden!" );
+		}
+	}
+	else if ( StrEqual( szItem, "bot" ) )
+	{
+		if ( g_fClientHideFlags[client] & HIDEHUD_BOTS )
+		{
+			g_fClientHideFlags[client] &= ~HIDEHUD_BOTS;
+	
+			PRINTCHAT( client, CHAT_PREFIX..."Record bots show up again!" );
+		}
+		else
+		{
+			g_fClientHideFlags[client] |= HIDEHUD_BOTS;
+			
+			PRINTCHAT( client, CHAT_PREFIX..."Record bots are now hidden!" );
+		}
+	}
+	else if ( StrEqual( szItem, "time" ) )
+	{
+		if ( g_fClientHideFlags[client] & HIDEHUD_TIMER )
+		{
+			g_fClientHideFlags[client] &= ~HIDEHUD_TIMER;
+			
+			PRINTCHAT( client, CHAT_PREFIX..."Your timer is back!" );
+		}
+		else
+		{
+			g_fClientHideFlags[client] |= HIDEHUD_TIMER;
+			
+			PRINTCHAT( client, CHAT_PREFIX..."Your timer is now hidden!" );
+		}
+	}
+	else if ( StrEqual( szItem, "cpi" ) )
+	{
+		if ( g_fClientHideFlags[client] & HIDEHUD_CPINFO )
+		{
+			g_fClientHideFlags[client] &= ~HIDEHUD_CPINFO;
+			
+			PRINTCHAT( client, CHAT_PREFIX..."Checkpoint information is back!" );
+		}
+		else
+		{
+			g_fClientHideFlags[client] |= HIDEHUD_CPINFO;
+			
+			PRINTCHAT( client, CHAT_PREFIX..."Checkpoint information is now hidden!" );
+		}
+	}
+#if !defined CSGO
+	else if ( StrEqual( szItem, "info" ) )
+	{
+		if ( g_fClientHideFlags[client] & HIDEHUD_SIDEINFO )
+		{
+			g_fClientHideFlags[client] &= ~HIDEHUD_SIDEINFO;
+			
+			PRINTCHAT( client, CHAT_PREFIX..."Sidebar enabled!" );
+		}
+		else
+		{
+			g_fClientHideFlags[client] |= HIDEHUD_SIDEINFO;
+			
+			PRINTCHAT( client, CHAT_PREFIX..."Sidebar is now hidden!" );
+		}
+	}
+#endif
+	else if ( StrEqual( szItem, "zon" ) )
+	{
+		if ( g_fClientHideFlags[client] & HIDEHUD_SHOWZONES )
+		{
+			g_fClientHideFlags[client] &= ~HIDEHUD_SHOWZONES;
+			
+			PRINTCHAT( client, CHAT_PREFIX..."Other zones are now hidden!" );
+		}
+		else
+		{
+			g_fClientHideFlags[client] |= HIDEHUD_SHOWZONES;
+			
+			PRINTCHAT( client, CHAT_PREFIX..."Other zones are now shown!" );
+		}
+	}
+	else if ( StrEqual( szItem, "chat" ) )
+	{
+		if ( g_fClientHideFlags[client] & HIDEHUD_CHAT )
+		{
+			g_fClientHideFlags[client] &= ~HIDEHUD_CHAT;
+			
+			PRINTCHAT( client, CHAT_PREFIX..."Chat enabled!" );
+		}
+		else
+		{
+			g_fClientHideFlags[client] |= HIDEHUD_CHAT;
+			
+			PRINTCHAT( client, CHAT_PREFIX..."Chat is now hidden!" );
+		}
+	}
+	else if ( StrEqual( szItem, "recs" ) )
+	{
+		if ( g_fClientHideFlags[client] & HIDEHUD_RECSOUNDS )
+		{
+			g_fClientHideFlags[client] &= ~HIDEHUD_RECSOUNDS;
+			
+			PRINTCHAT( client, CHAT_PREFIX..."Record sounds enabled!" );
+		}
+		else
+		{
+			g_fClientHideFlags[client] |= HIDEHUD_RECSOUNDS;
+			
+			PRINTCHAT( client, CHAT_PREFIX..."Record sounds disabled!" );
+		}
+	}
+	else if ( StrEqual( szItem, "fla" ) )
+	{
+		if ( g_fClientHideFlags[client] & HIDEHUD_STYLEFLASH )
+		{
+			g_fClientHideFlags[client] &= ~HIDEHUD_STYLEFLASH;
+			
+			PRINTCHAT( client, CHAT_PREFIX..."Style fail flash enabled!" );
+		}
+		else
+		{
+			g_fClientHideFlags[client] |= HIDEHUD_STYLEFLASH;
+			
+			PRINTCHAT( client, CHAT_PREFIX..."Style fail flash disabled!" );
 		}
 	}
 	
@@ -209,101 +218,70 @@ public int Handler_Hud( Menu mMenu, MenuAction action, int client, int item )
 #if defined VOTING
 	public Action Command_VoteMap( int client, int args )
 	{
-		if ( client == INVALID_INDEX ) return Plugin_Handled;
+		if ( !client ) return Plugin_Handled;
 		
 		if ( g_hMapList == null )
 		{
-			PRINTCHAT( client, client, CHAT_PREFIX ... "Voting is currently disabled!" );
+			PRINTCHAT( client, CHAT_PREFIX..."Voting is currently disabled!" );
 			return Plugin_Handled;
 		}
 		
-		if ( !IsPlayerAlive( client ) )
-		{
-			PRINTCHAT( client, client, CHAT_PREFIX ... "You cannot participate in the vote if you're not doing anything, silly." );
-			return Plugin_Handled;
-		}
+		if ( !IsValidCommandUser( client ) ) return Plugin_Handled;
 		
 		
-		int len = GetArraySize( g_hMapList );
+		int len = g_hMapList.Length;
 		
 		if ( len < 1 )
 		{
-			PRINTCHAT( client, client, CHAT_PREFIX ... "Voting is currently disabled!" );
+			PRINTCHAT( client, CHAT_PREFIX..."Voting is currently disabled!" );
 			return Plugin_Handled;
 		}
 		
 		
-		SetEntProp( client, Prop_Data, "m_iHideHUD", 0 );
-		Menu mMenu = CreateMenu( Handler_Vote );
-		SetMenuTitle( mMenu, "Vote\n " );
+		Menu mMenu = new Menu( Handler_Vote );
+		mMenu.SetTitle( "Vote Menu\n " );
 		
-		int iMap[MAX_MAP_NAME_LENGTH];
-		char MapName[MAX_MAP_NAME_LENGTH];
+		char szMap[MAX_MAP_NAME];
 		
-		for ( int i; i < len; i++ )
+		for ( int i = 0; i < len; i++ )
 		{
-			GetArrayArray( g_hMapList, i, iMap, view_as<int>MapInfo );
-			strcopy( MapName, sizeof( MapName ), iMap[MAP_NAME] );
-			
-			AddMenuItem( mMenu, "_", MapName );
+			g_hMapList.GetString( i, szMap, sizeof( szMap ) );
+			mMenu.AddItem( "", szMap );
 		}
 		
-		//SetMenuExitButton( mMenu, true );
-		DisplayMenu( mMenu, client, MENU_TIME_FOREVER );
+		mMenu.Display( client, MENU_TIME_FOREVER );
 		
 		return Plugin_Handled;
 	}
 
 	public int Handler_Vote( Menu mMenu, MenuAction action, int client, int index )
 	{
-		switch ( action )
+		if ( action == MenuAction_End ) { delete mMenu; return 0; }
+		if ( action != MenuAction_Select ) return 0;
+		
+		
+		if ( g_iClientVote[client] == index ) return 0;
+		
+		int len = g_hMapList.Length;
+		
+		if ( index >= len ) return 0;
+		
+		
+		char szMap[MAX_MAP_NAME];
+		g_hMapList.GetString( index, szMap, sizeof( szMap ) );
+		
+		if ( g_iClientVote[client] != -1 )
 		{
-			case MenuAction_End :
-			{
-				if ( client > 0 && g_fClientHideFlags[client] & HIDEHUD_HUD )
-					SetEntProp( client, Prop_Data, "m_iHideHUD", HIDE_FLAGS );
-				
-				delete mMenu;
-			}
-			case MenuAction_Select :
-			{
-				char szItem[2];
-				
-				if ( !GetMenuItem( mMenu, index, szItem, sizeof( szItem ) ) || szItem[0] != '_' )
-				{
-					return 0;
-				}
-				
-				if ( g_iClientVote[client] == index ) return 0;
-
-				
-				int len = GetArraySize( g_hMapList );
-				
-				if ( index > len ) return 0;
-				
-				
-				int iMap[MAX_MAP_NAME_LENGTH];
-				char szMap[MAX_MAP_NAME_LENGTH];
-				
-				GetArrayArray( g_hMapList, index, iMap, view_as<int>MapInfo );
-				
-				strcopy( szMap, sizeof( szMap ), iMap[MAP_NAME] );
-				
-				if ( g_iClientVote[client] != -1 )
-				{
-					PRINTCHATALLV( client, false, CHAT_PREFIX ... "\x03%N"...CLR_TEXT..." changed their vote to \x03%s"...CLR_TEXT..."!", client, szMap );
-				}
-				else
-				{
-					PRINTCHATALLV( client, false, CHAT_PREFIX ... "\x03%N"...CLR_TEXT..." voted for \x03%s"...CLR_TEXT..."!", client, szMap );
-				}
-				
-				g_iClientVote[client] = index;
-				
-				CalcVotes();
-				//else PRINTCHAT( client, client, CHAT_PREFIX ... "Was unable to process your vote. Try again." );
-			}
+			PrintColorChatAll( client, CHAT_PREFIX...""...CLR_TEAM..."%N"...CLR_TEXT..." changed their vote to "...CLR_TEAM..."%s"...CLR_TEXT..."!", client, szMap );
 		}
+		else
+		{
+			PrintColorChatAll( client, CHAT_PREFIX...""...CLR_TEAM..."%N"...CLR_TEXT..." voted for "...CLR_TEAM..."%s"...CLR_TEXT..."!", client, szMap );
+		}
+		
+		g_iClientVote[client] = index;
+		
+		CalcVotes();
 		
 		return 0;
 	}
@@ -311,97 +289,56 @@ public int Handler_Hud( Menu mMenu, MenuAction action, int client, int item )
 
 public Action Command_Style( int client, int args )
 {
-	if ( client == INVALID_INDEX ) return Plugin_Handled;
-	
-	if ( !IsPlayerAlive( client ) )
-	{
-		PRINTCHAT( client, client, CHAT_PREFIX ... "You must be alive to change your style!" );
-		return Plugin_Handled;
-	}
+	if ( !client ) return Plugin_Handled;
 	
 	
-	SetEntProp( client, Prop_Data, "m_iHideHUD", 0 );
-	Menu mMenu = CreateMenu( Handler_Style );
-	SetMenuTitle( mMenu, "Choose Style\n " );
+	Menu mMenu = new Menu( Handler_Style );
+	mMenu.SetTitle( "Choose Style\n " );
 	
+	mMenu.AddItem( "scrl", ( g_iClientMode[client] == MODE_AUTO ) ? "Autobhop: ON" : "Autobhop: OFF" );
 	
+	// "XXXXXvel: OFF"
+	char szItem[14];
+	FormatEx( szItem, sizeof( szItem ), "%.0fvel: %s\n ", g_flVelCap, ( g_iClientMode[client] == MODE_VELCAP ) ? "ON" : "OFF" );
+	mMenu.AddItem( "vel", szItem, ( g_iClientMode[client] == MODE_AUTO ) ? ITEMDRAW_DISABLED : 0 );
 	
-	for ( int i; i < NUM_STYLES; i++ )
-	{
-		bool bAllowed = true;
-		switch ( i )
-		{
-			case STYLE_SIDEWAYS :
-			{
-				if ( !GetConVarBool( g_ConVar_Allow_SW ) ) bAllowed = false;
-			}
-			case STYLE_W :
-			{
-				if ( !GetConVarBool( g_ConVar_Allow_W ) ) bAllowed = false;
-			}
-			case STYLE_REAL_HSW :
-			{
-				if ( !GetConVarBool( g_ConVar_Allow_RHSW ) ) bAllowed = false;
-			}
-			case STYLE_HSW :
-			{
-				if ( !GetConVarBool( g_ConVar_Allow_HSW ) ) bAllowed = false;
-			}
-			case STYLE_VEL :
-			{
-				char sz[8]; // "XXXXvel"
-				FormatEx( sz, sizeof( sz ), "%.0fvel", g_flVelCap );
-				
-				if ( !GetConVarBool( g_ConVar_Allow_Vel ) || g_iClientStyle[client] == i )
-				{
-					AddMenuItem( mMenu, "_", sz, ITEMDRAW_DISABLED );
-				}
-				else AddMenuItem( mMenu, "_", sz );
-				
-				continue;
-			}
-		}
-		
-		if ( bAllowed && g_iClientStyle[client] != i )
-		{
-			AddMenuItem( mMenu, "_", g_szStyleName[NAME_LONG][i] );
-		}
-		else
-		{
-			AddMenuItem( mMenu, "_", g_szStyleName[NAME_LONG][i], ITEMDRAW_DISABLED );
-		}
-	}
+	for ( int i = 0; i < NUM_STYLES; i++ )
+		mMenu.AddItem( "", g_szStyleName[NAME_LONG][i], ( IsAllowedStyle( i ) && g_iClientStyle[client] != i ) ? 0 : ITEMDRAW_DISABLED );
 	
-	//SetMenuExitButton( mMenu, true );
-	DisplayMenu( mMenu, client, 8 );
+	mMenu.Display( client, MENU_TIME_FOREVER );
 	
 	return Plugin_Handled;
 }
 
-public int Handler_Style( Menu mMenu, MenuAction action, int client, int style )
+public int Handler_Style( Menu mMenu, MenuAction action, int client, int index )
 {
-	switch ( action )
+	if ( action == MenuAction_End ) { delete mMenu; return 0; }
+	if ( action != MenuAction_Select ) return 0;
+	
+	
+	char szItem[5];
+	if ( !GetMenuItem( mMenu, index, szItem, sizeof( szItem ) ) ) return 0;
+	
+	
+	if ( StrEqual( szItem, "scrl" ) )
 	{
-		case MenuAction_End :
-		{
-			if ( client > 0 && g_fClientHideFlags[client] & HIDEHUD_HUD )
-				SetEntProp( client, Prop_Data, "m_iHideHUD", HIDE_FLAGS );
-			
-			delete mMenu;
-		}
-		case MenuAction_Select :
-		{
-			char szItem[2];
-			
-			if ( !GetMenuItem( mMenu, style, szItem, sizeof( szItem ) ) || szItem[0] != '_' )
-			{
-				return 0;
-			}
-			
-			if ( 0 > style >= NUM_STYLES ) return 0;
-			
-			SetPlayerStyle( client, style );
-		}
+		FakeClientCommand( client, "sm_scroll" );
+	}
+	else if ( StrEqual( szItem, "vel" ) )
+	{
+		FakeClientCommand( client, "sm_velcap" );
+	}
+	else
+	{
+		index -= 2;
+		
+		if ( index < 0 || index >= NUM_STYLES ) return 0;
+		
+		
+		if ( ShouldReset( client ) )
+			TeleportPlayerToStart( client );
+		
+		SetPlayerStyle( client, index );
 	}
 	
 	return 0;
@@ -409,173 +346,185 @@ public int Handler_Style( Menu mMenu, MenuAction action, int client, int style )
 
 public Action Command_Practise_GotoPoint( int client, int args )
 {
-	if ( client == INVALID_INDEX ) return Plugin_Handled;
+	if ( !client ) return Plugin_Handled;
 	
-	if ( !g_bIsClientPractising[client] )
+	if ( g_hClientPracData[client] == null || !g_bClientPractising[client] )
 	{
-		PRINTCHAT( client, client, CHAT_PREFIX ... "You have to be in practice mode! (\x03!prac"...CLR_TEXT...")" );
+		PRINTCHAT( client, CHAT_PREFIX..."You have to be in practice mode! ("...CLR_TEAM..."!prac"...CLR_TEXT...")" );
 		return Plugin_Handled;
 	}
 	
-	if ( !IsPlayerAlive( client ) )
-	{
-		PRINTCHAT( client, client, CHAT_PREFIX ... "You must be alive to use this command!" );
-		return Plugin_Handled;
-	}
+	if ( !IsValidCommandUser( client ) ) return Plugin_Handled;
 	
 	// Do we even have a checkpoint?
-	if ( g_iClientCurSave[client] == INVALID_CP || g_flClientSaveDif[client][ g_iClientCurSave[client] ] == TIME_INVALID )
+	if ( !g_hClientPracData[client].Length || g_iClientCurSave[client] == INVALID_SAVE )
 	{
-		PRINTCHAT( client, client, CHAT_PREFIX ... "You must save a location first! (\x03!save"...CLR_TEXT...")" );
+		PRINTCHAT( client, CHAT_PREFIX..."You must save a location first! ("...CLR_TEAM..."!save"...CLR_TEXT...")" );
 		return Plugin_Handled;
 	}
 	
 	
 	// Format: sm_cp 1-9000, etc.
-	if ( args > 0 )
+	if ( args != 0 )
 	{
-		char szArg[3]; // For double digits. (just in case some nutjob changes PRAC_MAX_SAVES. Including you. YES, YOU! I see you reading this...)
+		char szArg[4]; // For triple digits. (just in case some nutjob changes PRAC_MAX_SAVES. Including you. YES, YOU! I see you reading this...)
 		GetCmdArgString( szArg, sizeof( szArg ) );
 		
 		int index = StringToInt( szArg );
-		index--;
 		
-		if ( 0 > index >= PRAC_MAX_SAVES )
+		int len = g_hClientPracData[client].Length;
+		
+		index--;
+		if ( index < 0 || index >= len )
 		{
-			PRINTCHATV( client, client, CHAT_PREFIX ... "Invalid argument! (1-%i)", PRAC_MAX_SAVES - 1 );
+			PRINTCHATV( client, CHAT_PREFIX..."Invalid argument! (1-%i)", len );
 			return Plugin_Handled;
 		}
-		
 		
 		index = g_iClientCurSave[client] - index;
 		
-		if ( index < 0 ) index = PRAC_MAX_SAVES + index;
+		if ( index < 0 ) index = len + index;
 		
-		if ( ( 0 > index >= PRAC_MAX_SAVES ) || g_flClientSaveDif[client][index] == TIME_INVALID )
+		if ( index < 0 || index >= len )
 		{
-			PRINTCHAT( client, client, CHAT_PREFIX ... "You don't have a checkpoint there!" );
+			PRINTCHAT( client, CHAT_PREFIX..."You don't have a checkpoint there!" );
 			return Plugin_Handled;
 		}
 		
-		
-		// Valid checkpoint!
-		g_flClientStartTime[client] = GetEngineTime() - g_flClientSaveDif[client][index];
-		
-		TeleportEntity( client, g_vecClientSavePos[client][index], g_vecClientSaveAng[client][index], g_vecClientSaveVel[client][index] );
+		TeleportToSavePoint( client, index );
 		
 		return Plugin_Handled;
 	}
 	
 	
 	// Yes we do!
-	SetEntProp( client, Prop_Data, "m_iHideHUD", 0 );
-	Menu mMenu = CreateMenu( Handler_Check );
-	SetMenuTitle( mMenu, "Checkpoints\n " );
+	Menu mMenu = new Menu( Handler_Check );
+	mMenu.SetTitle( "Checkpoints\n " );
 	
-	AddMenuItem( mMenu, "_", "Last CP" );
-	
-	char	szSlot[7]; // "#XX CP"
-	int		iSlot = 2;
-	int		index = g_iClientCurSave[client] - 1;
+	mMenu.AddItem( "", "Last Used" );
+	mMenu.AddItem( "", "Last Saved" );
 	
 	// Now, do we have more than the last cp?
-	while ( index != g_iClientCurSave[client] )
+	char	szSlot[8]; // "#XXX CP"
+	int		iSlot = 2;
+	int		len = g_hClientPracData[client].Length;
+	
+	if ( g_iClientCurSave[client] >= len )
 	{
-		if ( index < 0 ) index = PRAC_MAX_SAVES - 1;
+		g_iClientCurSave[client] = len - 1;
+	}
+	
+	// Start from previous save.
+	for ( int i = g_iClientCurSave[client] - 1;; i-- )
+	{
+		// Go to the top if done with the bottom.
+		if ( i < 0 ) i = len - 1;
 		
-		if ( g_flClientSaveDif[client][index] == TIME_INVALID ) break;
-		
+		if ( i == g_iClientCurSave[client] ) break;
 		
 		// Add it to the menu!
 		FormatEx( szSlot, sizeof( szSlot ), "#%i CP", iSlot );
+		mMenu.AddItem( "", szSlot );
 		
-		AddMenuItem( mMenu, "_", szSlot );
-		
-		index--;
 		iSlot++;
 	}
 	
-	DisplayMenu( mMenu, client, MENU_TIME_FOREVER );
+	mMenu.Display( client, MENU_TIME_FOREVER );
 	
 	return Plugin_Handled;
 }
 
 public int Handler_Check( Menu mMenu, MenuAction action, int client, int item )
 {
-	switch ( action )
+	if ( action == MenuAction_End ) { delete mMenu; return 0; }
+	if ( action != MenuAction_Select ) return 0;
+	
+	
+	if ( g_hClientPracData[client] == null ) return 0;
+	
+	
+	int len = g_hClientPracData[client].Length;
+	
+	// Pressed first item.
+	if ( --item < 0 )
 	{
-		case MenuAction_End :
-		{
-			if ( client > 0 && g_fClientHideFlags[client] & HIDEHUD_HUD )
-				SetEntProp( client, Prop_Data, "m_iHideHUD", HIDE_FLAGS );
-			
-			delete mMenu;
-		}
-		case MenuAction_Select :
-		{
-			char szItem[2];
-			
-			if ( !GetMenuItem( mMenu, item, szItem, sizeof( szItem ) ) || szItem[0] != '_' )
-			{
-				return 0;
-			}
-			
-			int index = g_iClientCurSave[client] - item;
-			
-			if ( index < 0 ) index = PRAC_MAX_SAVES + index;
-			
-			
-			// Just to be on the safe side...
-			if ( 0 > index >= PRAC_MAX_SAVES ) return 0;
-			if ( g_flClientSaveDif[client][index] == TIME_INVALID ) return 0;
-			
-			
-			g_flClientStartTime[client] = GetEngineTime() - g_flClientSaveDif[client][index];
-			
-			TeleportEntity( client, g_vecClientSavePos[client][index], g_vecClientSaveAng[client][index], g_vecClientSaveVel[client][index] );
-			
-			// Re-open mMenu.
-			ClientCommand( client, "sm_cp" );
-		}
+		TeleportToSavePoint( client, ( g_iClientLastUsedSave[client] != INVALID_SAVE && g_iClientLastUsedSave[client] < len ) ? g_iClientLastUsedSave[client] : 0 );
+		FakeClientCommand( client, "sm_cp" );
+		
+		return 0;
 	}
+	
+	int index = g_iClientCurSave[client] - item;
+	
+	if ( index < 0 ) index = len + index;
+	
+	// Just to be on the safe side...
+	if ( index < 0 || index >= len ) return 0;
+	
+	TeleportToSavePoint( client, index );
+	
+	// Re-open menu
+	FakeClientCommand( client, "sm_cp" );
 	
 	return 0;
 }
 
 public Action Command_Credits( int client, int args )
 {
-	if ( client == INVALID_INDEX ) return Plugin_Handled;
+	if ( !client ) return Plugin_Handled;
 	
-	SetEntProp( client, Prop_Data, "m_iHideHUD", 0 );
-	Menu mMenu = CreateMenu( Handler_Check );
-	SetMenuTitle( mMenu, "Credits\n " );
 	
-	AddMenuItem( mMenu, "_", "Mehis - Original author\n ", ITEMDRAW_DISABLED );
+	Panel pPanel = new Panel();
 	
-	AddMenuItem( mMenu, "_", "Thanks to: ", ITEMDRAW_DISABLED );
-	AddMenuItem( mMenu, "_", "Peace-Maker - For making botmimic. Learned a lot.", ITEMDRAW_DISABLED );
-	AddMenuItem( mMenu, "_", "george. - For the recording tip.", ITEMDRAW_DISABLED );
+	pPanel.SetTitle( "Credits:" );
 	
-	DisplayMenu( mMenu, client, MENU_TIME_FOREVER );
+	pPanel.DrawItem( "", ITEMDRAW_SPACER );
+	pPanel.DrawText( "Mehis - Original author" );
+	pPanel.DrawItem( "", ITEMDRAW_SPACER );
+	
+	pPanel.DrawText( "Thanks to: " );
+	pPanel.DrawText( "Peace-Maker - For making botmimic. Learned a lot." );
+	pPanel.DrawText( "george. - For the recording tip." );
+	pPanel.DrawItem( "", ITEMDRAW_SPACER );
+	
+	pPanel.DrawItem( "Exit", ITEMDRAW_CONTROL );
+	
+	pPanel.Send( client, Handler_Empty, MENU_TIME_FOREVER );
+	
+	delete pPanel;
 	
 	return Plugin_Handled;
 }
 
-// Used for multiply menus.
+#if defined ANTI_DOUBLESTEP
+	public Action Command_Doublestep( int client, int args )
+	{
+		if ( !client ) return Plugin_Handled;
+		
+		
+		Panel pPanel = new Panel();
+		
+		pPanel.SetTitle( "Doublestepping" );
+		
+		pPanel.DrawItem( "", ITEMDRAW_SPACER );
+		pPanel.DrawText( "For players that use client-side autobhop and suffer from non-perfect jumps:" );
+		pPanel.DrawText( "Bind your hold key to \'+ds\' to prevent it. (bind SPACE +ds, bind v +jump)" );
+		pPanel.DrawItem( "", ITEMDRAW_SPACER );
+		
+		pPanel.DrawItem( "Exit", ITEMDRAW_CONTROL );
+		
+		pPanel.Send( client, Handler_Empty, MENU_TIME_FOREVER );
+		
+		delete pPanel;
+		
+		return Plugin_Handled;
+	}
+#endif
+
+// Used for multiple menus/panels.
 public int Handler_Empty( Menu mMenu, MenuAction action, int client, int item )
 {
-	switch ( action )
-	{
-		case MenuAction_End :
-		{
-			if ( client > 0 && g_fClientHideFlags[client] & HIDEHUD_HUD )
-			{
-				SetEntProp( client, Prop_Data, "m_iHideHUD", HIDE_FLAGS );
-			}
-			
-			delete mMenu;
-		}
-	}
+	if ( action == MenuAction_End ) delete mMenu;	
 	
 	return 0;
 }

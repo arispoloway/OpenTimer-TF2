@@ -1,12 +1,28 @@
-// From SMLIB
 stock void ArrayCopy( const any[] oldArray, any[] newArray, int size = 1 )
 {
-	for ( int i; i < size; i++ ) newArray[i] = oldArray[i];
+	for ( int i = 0; i < size; i++ ) newArray[i] = oldArray[i];
 }
 
 stock void ArrayFill( any[] Array, any data, int size = 1 )
 {
-	for ( int i; i < size; i++ ) Array[i] = data;
+	for ( int i = 0; i < size; i++ ) Array[i] = data;
+}
+
+stock void ArraySet( any[] Array, any data, int index )
+{
+	Array[index] = data;
+}
+
+stock any ArrayGet( any[] Array, int index )
+{
+	return Array[index];
+}
+
+stock void PrintArray( any[] Array, int start = 0, int num = 1 )
+{
+	PrintToServer( "Array: " );
+	for ( int i = start; i < num; i++ ) PrintToServer( "F: %.2f - I: %i", Array[i], Array[i] );
+	PrintToServer( "----------" );
 }
 
 stock void CorrectMinsMaxs( float vecMins[3], float vecMaxs[3] )
@@ -37,55 +53,55 @@ stock void CorrectMinsMaxs( float vecMins[3], float vecMaxs[3] )
 }
 
 // Format seconds and make them look nice.
-stock void FormatSeconds( float flSeconds, char[] szTarget, int iLength, int fFlags = 0 )
+stock void FormatSeconds( float flSeconds, char szTarget[TIME_SIZE_DEF], int fFlags = 0 )
 {
-	static int		iHours;
-	int				iMins;
-	static char		szSec[6];
+	static int		iMins;
+	static char		szSec[7];
 	
-	if ( !( fFlags & FORMAT_NOHOURS ) )
-	{
-		iHours = 0;
-		
-		while ( flSeconds >= 3600.0 )
-		{
-			iHours++;
-			flSeconds -= 3600.0;
-		}
-	}
-	
+	iMins = 0;
 	while ( flSeconds >= 60.0 )
 	{
 		iMins++;
 		flSeconds -= 60.0;
 	}
 	
-	// XX.XX
-	FormatEx( szSec, sizeof( szSec ), ( fFlags & FORMAT_DESISECONDS ) ? "%04.1f" : "%05.2f", flSeconds );
+	switch ( fFlags )
+	{
+		case FORMAT_3DECI :
+		{
+			FormatEx( szSec, sizeof( szSec ), "%06.3f", flSeconds );
+		}
+		case FORMAT_DESI :
+		{
+			FormatEx( szSec, sizeof( szSec ), "%04.1f", flSeconds );
+		}
+		default :
+		{
+			FormatEx( szSec, sizeof( szSec ), "%05.2f", flSeconds );
+		}
+	}
 	
-	// "XX:XX.X" - [8] (SCOREBOARD)
-	// "XX:XX.XX" - [9] (CSGO)
-	// "XX:XX:XX.X" - [11] (HINT)
-	// "XX:XX:XX.XX" - [12] (RECORDS)
-	// "CXXC:CXXC:CXX.XX" - [17] (CHAT)
-	if ( fFlags & FORMAT_COLORED )
-	{
-		FormatEx( szTarget, iLength, "\x03%02i\x06:\x03%02i\x06:\x03%s", iHours, iMins, szSec );
-	}
-	else if ( fFlags & FORMAT_NOHOURS )
-	{
-		FormatEx( szTarget, iLength, "%02i:%s", iMins, szSec );
-	}
-	else FormatEx( szTarget, iLength, "%02i:%02i:%s", iHours, iMins, szSec );
+	// "XX.XX" to "XX:XX"
+	szSec[sizeof( szSec ) - 5] = ':';
+	
+	// "XX:XX:XXX" - [10] (DEF)
+	FormatEx( szTarget, TIME_SIZE_DEF, "%02i:%s", iMins, szSec );
 }
 
-// "Real" velocity
-stock float GetClientSpeed( int client )
+/*stock bool IsValidPlayerPosition( float vecPos[3] )
 {
-	static float vecVel[3];
-	GetEntPropVector( client, Prop_Data, "m_vecVelocity", vecVel );
+	static const float vecMins[] = { -16.0, -16.0, 0.0 };
+	static const float vecMaxs[] = { 16.0, 16.0, 72.0 };
 	
-	return SquareRoot( vecVel[0] * vecVel[0] + vecVel[1] * vecVel[1] );
+	TR_TraceHullFilter( vecPos, vecPos, vecMins, vecMaxs, MASK_SOLID );
+	
+	return ( !TR_DidHit( null ) );
+}*/
+
+stock int GetClientSpecTarget( int client )
+{
+	// Bad observer mode?
+	return ( GetEntProp( client, Prop_Send, "m_iObserverMode" ) == OBS_MODE_ROAMING ) ? -1 : GetEntPropEnt( client, Prop_Send, "m_hObserverTarget" );
 }
 
 stock void HideEntity( int ent )
@@ -94,20 +110,23 @@ stock void HideEntity( int ent )
 	SetEntityRenderColor( ent, _, _, _, 0 );
 }
 
-// Tell people what our time is in the clan section of scoreboard.
-/*stock void UpdateScoreboard( int client )
+stock int FindSlotByWeapon( int client, int weapon )
 {
-	if ( g_flClientBestTime[client][ g_iClientRun[client] ][ g_iClientStyle[client] ] <= TIME_INVALID )
+	for ( int i = 0; i < SLOTS_SAVED; i++ )
 	{
-		CS_SetClientClanTag( client, "" );
-		return;
+		if ( weapon == GetPlayerWeaponSlot( client, i ) ) return i;
 	}
 	
+	return -1;
+}
+
+stock void SetClientPredictedAirAcceleration( int client, float aa )
+{
+	char szValue[8];
+	FormatEx( szValue, sizeof( szValue ), "%0.f", aa );
 	
-	char szNewTime[SIZE_TIME_SCOREBOARD];
-	FormatSeconds( g_flClientBestTime[client][ g_iClientRun[client] ][ g_iClientStyle[client] ], szNewTime, sizeof( szNewTime ), FORMAT_NOHOURS );
-	CS_SetClientClanTag( client, szNewTime );
-}*/
+	SendConVarValue( client, g_ConVar_AirAccelerate, szValue );
+}
 
 stock void SetClientFOV( int client, int fov )
 {
@@ -115,6 +134,11 @@ stock void SetClientFOV( int client, int fov )
 	SetEntProp( client, Prop_Send, "m_iFOV", fov );
 	SetEntProp( client, Prop_Send, "m_iDefaultFOV", fov ); // This affects player's sensitivity. Should always be the same as desired FOV.
 	//SetEntProp( client, Prop_Send, "m_iFOVStart", fov );
+}
+
+stock void SetClientFrags( int client, int frags )
+{
+	SetEntProp( client, Prop_Data, "m_iFrags", frags );
 }
 
 stock int GetActivePlayers( int ignore = 0 )
@@ -132,42 +156,74 @@ stock int GetActivePlayers( int ignore = 0 )
 	return clients;
 }
 
-#if defined VOTING
-	stock void CalcVotes()
+// Used for players and other entities.
+stock bool IsInsideBounds( int ent, float vecMins[3], float vecMaxs[3] )
+{
+	static float vecPos[3];
+	GetEntPropVector( ent, Prop_Send, "m_vecOrigin", vecPos );
+	
+	// As of 1.4.4, we correct zone mins and maxs.
+	return (
+		( vecMins[0] <= vecPos[0] <= vecMaxs[0] )
+		&&
+		( vecMins[1] <= vecPos[1] <= vecMaxs[1] )
+		&&
+		( vecMins[2] <= vecPos[2] <= vecMaxs[2] ) );
+}
+
+stock int CreateTrigger( float vecMins[3], float vecMaxs[3] )
+{
+	int ent = CreateEntityByName( "trigger_multiple" );
+	
+	if ( ent < 1 )
 	{
-		int iClients = GetActivePlayers();
-		
-		if ( iClients < 1 || g_hMapList == null ) return;
-		
-		
-		int len = GetArraySize( g_hMapList );
-		int[] iMapVotes = new int[len];
-		
-		// Gather votes
-		for ( int i = 1; i <= MaxClients; i++ )
-			if ( IsClientInGame( i ) && g_iClientVote[i] != -1 )
-				iMapVotes[ g_iClientVote[i] ]++;
-		
-		// Get maximum needed votes.
-		int iReq = 1;
-		
-		if ( iClients > 2 )
-		{
-			iReq = RoundFloat( iClients * 0.8 );
-		}
-		
-		// Check if we have a winrar
-		for ( int i; i < len; i++ )
-			if ( iMapVotes[i] >= iReq )
-			{
-				int iMap[MAX_MAP_NAME_LENGTH];
-				GetArrayArray( g_hMapList, i, iMap, view_as<int>MapInfo );
-				strcopy( g_szNextMap, sizeof( g_szNextMap ), iMap[MAP_NAME] );
-				
-				CreateTimer( 3.0, Timer_ChangeMap, TIMER_FLAG_NO_MAPCHANGE );
-				PRINTCHATALLV( 0, false, CHAT_PREFIX ... "Enough people voted for \x03%s"...CLR_TEXT..."! Changing map...", g_szNextMap );
-				
-				return;
-			}
+		LogError( CONSOLE_PREFIX..."Couldn't create block entity!" );
+		return 0;
 	}
-#endif
+	
+	DispatchKeyValue( ent, "wait", "0" );
+	DispatchKeyValue( ent, "StartDisabled", "0" );
+	DispatchKeyValue( ent, "spawnflags", "1" ); // Clients only!
+	
+	if ( !DispatchSpawn( ent ) )
+	{
+		LogError( CONSOLE_PREFIX..."Couldn't spawn block entity!" );
+		return 0;
+	}
+	
+	ActivateEntity( ent );
+	
+	SetEntityModel( ent, BRUSH_MODEL );
+	
+	SetEntProp( ent, Prop_Send, "m_fEffects", 32 ); // NODRAW
+	
+	
+	float vecPos[3];
+	float vecNewMaxs[3];
+	
+	// Determine the entity's origin.
+	// This means the bounds will be just opposite numbers of each other.
+	vecNewMaxs[0] = ( vecMaxs[0] - vecMins[0] ) / 2;
+	vecPos[0] = vecMins[0] + vecNewMaxs[0];
+
+	vecNewMaxs[1] = ( vecMaxs[1] - vecMins[1] ) / 2;
+	vecPos[1] = vecMins[1] + vecNewMaxs[1];
+
+	vecNewMaxs[2] = ( vecMaxs[2] - vecMins[2] ) / 2;
+	vecPos[2] = vecMins[2] + vecNewMaxs[2];
+	
+	TeleportEntity( ent, vecPos, NULL_VECTOR, NULL_VECTOR );
+	
+	// We then set the mins and maxs of the zone according to the center.
+	float vecNewMins[3];
+	
+	vecNewMins[0] = -1 * vecNewMaxs[0];
+	vecNewMins[1] = -1 * vecNewMaxs[1];
+	vecNewMins[2] = -1 * vecNewMaxs[2];
+	
+	SetEntPropVector( ent, Prop_Send, "m_vecMins", vecNewMins );
+	SetEntPropVector( ent, Prop_Send, "m_vecMaxs", vecNewMaxs );
+	SetEntProp( ent, Prop_Send, "m_nSolidType", 2 ); // Essential! Use bounding box instead of model's bsp(?) for input.
+	
+	return ent;
+}

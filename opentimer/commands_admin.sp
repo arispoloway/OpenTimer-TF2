@@ -1,109 +1,235 @@
 public Action Command_Admin_ZoneEnd( int client, int args )
 {
-	if ( client == INVALID_INDEX ) return Plugin_Handled;
+	if ( !client ) return Plugin_Handled;
 	
-	if ( g_iBuilderIndex != client )
+	if ( g_iBuilderZone[client] <= ZONE_INVALID )
 	{
-		if ( g_iBuilderIndex == INVALID_INDEX )
-		{
-			PRINTCHAT( client, client, CHAT_PREFIX ... "You haven't even started a zone! (\x03!startzone"...CLR_TEXT...")" );
-			return Plugin_Handled;
-		}
-		
-		if ( !IsClientInGame( g_iBuilderIndex ) )
-		{
-			g_iBuilderIndex = INVALID_INDEX;
-			
-			PRINTCHAT( client, client, CHAT_PREFIX ... "You haven't even started a zone! (\x03!startzone"...CLR_TEXT...")" );
-			
-			return Plugin_Handled;
-		}
-		
-		
-		PRINTCHAT( client, client, CHAT_PREFIX ... "Somebody else is building the zone!" );
-		return Plugin_Handled;
-	}
-	
-	if ( g_iBuilderZone == INVALID_ZONE_INDEX )
-	{
-		PRINTCHAT( client, client, CHAT_PREFIX ... "Invalid zone index!" );
+		PRINTCHAT( client, CHAT_PREFIX..."You haven't even started to build!" );
 		return Plugin_Handled;
 	}
 	
 	
-	float vecClientPos[3];
-	GetClientAbsOrigin( client, vecClientPos );
+	int zone = g_iBuilderZone[client];
 	
-	g_vecZoneMaxs[g_iBuilderZone][0] = vecClientPos[0] - ( RoundFloat( vecClientPos[0] ) % g_iBuilderGridSize );
-	g_vecZoneMaxs[g_iBuilderZone][1] = vecClientPos[1] - ( RoundFloat( vecClientPos[1] ) % g_iBuilderGridSize );
+	float vecMaxs[3];
+	
+	float vecPos[3];
+	GetClientAbsOrigin( client, vecPos );
+	
+	vecMaxs[0] = vecPos[0] - ( RoundFloat( vecPos[0] ) % g_iBuilderGridSize[client] );
+	vecMaxs[1] = vecPos[1] - ( RoundFloat( vecPos[1] ) % g_iBuilderGridSize[client] );
 	
 	
-	float flDif = vecClientPos[2] - g_vecZoneMins[g_iBuilderZone][2];
+	float flDif = vecPos[2] - g_vecBuilderStart[client][2];
 	
 	// If player built the mins on the ground and just walks to the other side, we will then automatically make it higher.
-	g_vecZoneMaxs[g_iBuilderZone][2] = ( flDif <= 4.0 && flDif >= -4.0 ) ? ( vecClientPos[2] + ZONE_DEF_HEIGHT ) : float( RoundFloat( vecClientPos[2] - 0.5 ) );
+	vecMaxs[2] = ( flDif <= 4.0 && flDif >= -4.0 ) ? ( g_vecBuilderStart[client][2] + ZONE_DEF_HEIGHT ) : float( RoundFloat( vecPos[2] - 0.5 ) );
+	
+	CorrectMinsMaxs( g_vecBuilderStart[client], vecMaxs );
 	
 	
-	CorrectMinsMaxs( g_vecZoneMins[g_iBuilderZone], g_vecZoneMaxs[g_iBuilderZone] );
-	SetupZonePoints( g_iBuilderZone );
+	int id = 0;
+	int flags = 0;
+	int run = g_iClientRun[client];
 	
-	// This was used for precise mins for zones that would always be on the ground, so our origin cannot be under the mins.
-	// E.g player is standing on ground but our mins are higher than player's origin meaning that the player is outside of the zone.
-	// It is unneccesary now because our zones are rounded. The player will always be 0.1 - 2.0 units higher.
-	
-	/*
-	static const float angDown[] = { 90.0, 0.0, 0.0 };
-	
-	TR_TraceRay( g_vecZoneMins[g_iBuilderZone], angDown, MASK_PLAYERSOLID_BRUSHONLY, RayType_Infinite );
-	
-	if ( TR_DidHit( null ) )
-		if ( TR_GetEntityIndex( null ) != client )
-			TR_GetEndPosition( g_vecZoneMins[g_iBuilderZone], null );
-	*/
-	
-	
-	// Save to database.
-	if ( DB_SaveMapZone( g_iBuilderZone ) )
+	if ( zone == ZONE_FREESTYLES || zone == ZONE_BLOCKS )
 	{
-		PRINTCHATV( client, client, CHAT_PREFIX ... "\x03%s"...CLR_TEXT..." was successfully saved!", g_szZoneNames[g_iBuilderZone] );
+		flags = ( zone == ZONE_FREESTYLES ) ? DEF_FREESTYLE_FLAGS : DEF_BLOCK_FLAGS;
+		
+		// Find out which id is available.
+		int len = g_hZones.Length;
+		
+		for ( int j = 0; j <= len; j++ )
+		{
+			bool bFound;
+			
+			for ( int i = 0; i < len; i++ )
+				if ( g_hZones.Get( i, view_as<int>( ZONE_TYPE ) ) == zone && g_hZones.Get( i, view_as<int>( ZONE_ID ) ) == j )
+				{
+					// We found a match. Try again.
+					bFound = true;
+					break;
+				}
+			
+			if ( !bFound )
+			{
+				id = j;
+				break;
+			}
+		}
+	}
+	else if ( zone == ZONE_CP )
+	{
+		// Find out which id is available.
+		int len = g_hCPs.Length;
+		
+		for ( int j = 0; j <= len; j++ )
+		{
+			bool bFound;
+			
+			for ( int i = 0; i < len; i++ )
+				if ( g_hCPs.Get( i, view_as<int>( CP_RUN ) ) == run && g_hCPs.Get( i, view_as<int>( CP_ID ) ) == j )
+				{
+					// We found a match. Try again.
+					bFound = true;
+					break;
+				}
+			
+			if ( !bFound )
+			{
+				id = j;
+				break;
+			}
+		}
 	}
 	else
 	{
-		PRINTCHATV( client, client, CHAT_PREFIX ... "Plugin was unable to save \x03%s"...CLR_TEXT..." to database!!!", g_szZoneNames[g_iBuilderZone] );
+		ArrayCopy( g_vecBuilderStart[client], g_vecZoneMins[zone], 3 );
+		ArrayCopy( vecMaxs, g_vecZoneMaxs[zone], 3 );
+		
+		g_bZoneExists[zone] = true;
+		
+		g_bZoneBeingBuilt[zone] = false;
+	}
+	
+	// Save to database.
+	DB_SaveMapZone( zone, g_vecBuilderStart[client], vecMaxs, id, flags, run, client );
+	
+	
+	// Notify clients of the change!
+	if ( (zone == ZONE_START || zone == ZONE_END) && (g_bZoneExists[ZONE_START] && g_bZoneExists[ZONE_END]) )
+	{
+		SetupZoneSpawns();
+		
+		g_bIsLoaded[RUN_MAIN] = true;
+		PrintColorChatAll( client, CHAT_PREFIX...""...CLR_TEAM..."%s"...CLR_TEXT..." is now available!", g_szRunName[NAME_LONG][RUN_MAIN] );
+	}
+	else if ( (zone == ZONE_BONUS_1_START || zone == ZONE_BONUS_1_END) && (g_bZoneExists[ZONE_BONUS_1_START] && g_bZoneExists[ZONE_BONUS_1_END]) )
+	{
+		SetupZoneSpawns();
+		
+		g_bIsLoaded[RUN_BONUS1] = true;
+		PrintColorChatAll( client, CHAT_PREFIX...""...CLR_TEAM..."%s"...CLR_TEXT..." is now available!", g_szRunName[NAME_LONG][RUN_BONUS1] );
+	}
+	else if ( (zone == ZONE_BONUS_2_START || zone == ZONE_BONUS_2_END) && (g_bZoneExists[ZONE_BONUS_2_START] && g_bZoneExists[ZONE_BONUS_2_END]) )
+	{
+		SetupZoneSpawns();
+		
+		g_bIsLoaded[RUN_BONUS2] = true;
+		PrintColorChatAll( client, CHAT_PREFIX...""...CLR_TEAM..."%s"...CLR_TEXT..." is now available!", g_szRunName[NAME_LONG][RUN_BONUS2] );
+	}
+	else if ( zone == ZONE_FREESTYLES || zone == ZONE_BLOCKS )
+	{
+		int iData[ZONE_SIZE];
+		
+		iData[ZONE_FLAGS] = flags;
+		iData[ZONE_TYPE] = zone;
+		iData[ZONE_ID] = id;
+		
+		ArrayCopy( g_vecBuilderStart[client], iData[ZONE_MINS], 3 );
+		ArrayCopy( vecMaxs, iData[ZONE_MAXS], 3 );
+		
+		CreateZoneEntity( g_hZones.PushArray( iData, view_as<int>( ZoneData ) ) );
+	}
+	else if ( zone == ZONE_CP )
+	{
+		int iData[CP_SIZE];
+		
+		iData[CP_RUN] = run;
+		iData[CP_ID] = id;
+		
+		ArrayCopy( g_vecBuilderStart[client], iData[CP_MINS], 3 );
+		ArrayCopy( vecMaxs, iData[CP_MAXS], 3 );
+		
+		CreateCheckPoint( g_hCPs.PushArray( iData, view_as<int>( CPData ) ) );
+	}
+	
+	CreateZoneBeams( zone, g_vecBuilderStart[client], vecMaxs, id );
+	
+	if ( zone == ZONE_CP )
+	{
+		PRINTCHATV( client, CHAT_PREFIX..."Created "...CLR_TEAM..."%s"...CLR_TEXT..." for "...CLR_TEAM..."%s"...CLR_TEXT..." successfully!", g_szZoneNames[zone], g_szRunName[NAME_LONG][run] );
+	}
+	else PRINTCHATV( client, CHAT_PREFIX..."Created "...CLR_TEAM..."%s"...CLR_TEXT..." successfully!", g_szZoneNames[zone] );
+	
+	
+	ResetBuilding( client );
+
+	
+	return Plugin_Handled;
+}
+
+public Action Command_Admin_ZoneCancel( int client, int args )
+{
+	if ( !client ) return Plugin_Handled;
+	
+	if ( g_iBuilderZone[client] == ZONE_INVALID )
+	{
+		PRINTCHAT( client, CHAT_PREFIX..."You have no zone to cancel!" );
+		return Plugin_Handled;
+	}
+	
+	ResetBuilding( client );
+	
+	return Plugin_Handled;
+}
+
+public Action Command_Admin_ZoneEdit_SelectCur( int client, int args )
+{
+	if ( !client ) return Plugin_Handled;
+	
+	int len = g_hZones.Length;
+	if ( g_hZones == null || !len )
+	{
+		PRINTCHAT( client, CHAT_PREFIX..."There are no zones to change!" );
+		
+		FakeClientCommand( client, "sm_zone" );
+		
+		return Plugin_Handled;
+	}
+	
+	// Only one to choose from...
+	if ( len == 1 )
+	{
+		g_iBuilderZoneIndex[client] = 0;
+		
+		FakeClientCommand( client, "sm_zonepermissions" );
+		
 		return Plugin_Handled;
 	}
 	
 	
-	// Notify clients of the change!
-	if ( ( g_iBuilderZone == ZONE_START || g_iBuilderZone == ZONE_END ) && ( g_bZoneExists[ZONE_START] && g_bZoneExists[ZONE_END] ) )
+	int iData[ZONE_SIZE];
+	
+	float vecMins[3];
+	float vecMaxs[3];
+	
+	for ( int i = 0; i < len; i++ )
 	{
-		DoMapStuff();
+		g_hZones.GetArray( i, iData, view_as<int>( ZoneData ) );
 		
-		g_bIsLoaded[RUN_MAIN] = true;
-		PRINTCHATALLV( client, false, CHAT_PREFIX ... "\x03%s"...CLR_TEXT..." is now available!", g_szRunName[NAME_LONG][RUN_MAIN] );
-	}
-	else if ( ( g_iBuilderZone == ZONE_BONUS_1_START || g_iBuilderZone == ZONE_BONUS_1_END ) && ( g_bZoneExists[ZONE_BONUS_1_START] && g_bZoneExists[ZONE_BONUS_1_END] ) )
-	{
-		DoMapStuff();
+		ArrayCopy( iData[ZONE_MINS], vecMins, 3 );
+		ArrayCopy( iData[ZONE_MAXS], vecMaxs, 3 );
 		
-		g_bIsLoaded[RUN_BONUS_1] = true;
-		PRINTCHATALLV( client, false, CHAT_PREFIX ... "\x03%s"...CLR_TEXT..." is now available!", g_szRunName[NAME_LONG][RUN_BONUS_1] );
-	}
-	else if ( ( g_iBuilderZone == ZONE_BONUS_2_START || g_iBuilderZone == ZONE_BONUS_2_END ) && ( g_bZoneExists[ZONE_BONUS_2_START] && g_bZoneExists[ZONE_BONUS_2_END] ) )
-	{
-		DoMapStuff();
-		
-		g_bIsLoaded[RUN_BONUS_2] = true;
-		PRINTCHATALLV( client, false, CHAT_PREFIX ... "\x03%s"...CLR_TEXT..." is now available!", g_szRunName[NAME_LONG][RUN_BONUS_2] );
-	}
-	// Block zones must be spawned!
-	else if ( g_iBuilderZone >= ZONE_BLOCK_1 && g_iBuilderZone <= ZONE_BLOCK_3 )
-	{
-		CreateBlockZoneEntity( g_iBuilderZone );
+		if ( IsInsideBounds( client, vecMins, vecMaxs ) )
+		{
+			g_iBuilderZoneIndex[client] = i;
+			
+			FakeClientCommand( client, "sm_zonepermissions" );
+			
+			return Plugin_Handled;
+		}
 	}
 	
-	g_iBuilderIndex = INVALID_INDEX;
-	g_iBuilderZone = INVALID_ZONE_INDEX;
+	PRINTCHAT( client, CHAT_PREFIX..."Sorry, couldn't find zones." );
 	
+	FakeClientCommand( client, "sm_zoneedit" );
+	
+	return Plugin_Handled;
+}
+
+public Action Command_Admin_ForceZoneCheck( int client, int args )
+{
+	CheckZones();
 	return Plugin_Handled;
 }

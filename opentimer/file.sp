@@ -1,3 +1,8 @@
+// In case we add anymore style.
+static const char g_szRunDir[NUM_RUNS][5] = { "main", "b1", "b2" };
+static const char g_szStyleDir[NUM_STYLES][5] = { "n", "sw", "w", "rhsw", "hsw", "ad" };
+static const char g_szModeDir[NUM_MODES][5] = { "auto", "scrl", "vel" };
+
 stock bool ExCreateDir( const char[] szPath )
 {
 	if ( !DirExists( szPath ) )
@@ -6,7 +11,7 @@ stock bool ExCreateDir( const char[] szPath )
 		
 		if ( !DirExists( szPath ) )
 		{
-			LogError( CONSOLE_PREFIX ... "Couldn't create folder! (%s)", szPath );
+			LogError( CONSOLE_PREFIX..."Couldn't create folder! (%s)", szPath );
 			return false;
 		}
 	}
@@ -14,85 +19,106 @@ stock bool ExCreateDir( const char[] szPath )
 	return true;
 }
 
-// RECORD STUFF
-stock bool SaveRecording( int client, float flTime )
+/*
+	File structure:
+
+	Magic number
+
+	Recording length
+	Recording tickrate
+	
+	Run
+	Style
+	Mode
+	
+	Time
+	Jump count
+	Strafe count
+	Name
+	Steamid
+	Id
+
+	Recording data...
+*/
+stock bool SaveRecording(	int id,
+							int run,
+							int style,
+							int mode,
+							ArrayList &hRec,
+							float flTime,
+							int jumps,
+							int strafes,
+							char szName[MAX_NAME_LENGTH],
+							char szSteam[MAX_ID_LENGTH] )
 {
-	char szSteamID[STEAMID_MAXLENGTH];
-	
-	if ( !GetClientAuthId( client, AuthId_Engine, szSteamID, sizeof( szSteamID ) ) )
-		return false;
-	
-	
-	ReplaceString( szSteamID, sizeof( szSteamID ), "STEAM_", "" );
-	
-	// STEAM_0:1:30495520 to 0_1_30495520
-	for ( int i; i < 5; i++ )
-		if ( szSteamID[i] == ':' )
-			szSteamID[i] = '_';
-	
-	
 	static char szPath[PLATFORM_MAX_PATH];
 	BuildPath( Path_SM, szPath, sizeof( szPath ), "records" );
 	
 	
 	if ( !ExCreateDir( szPath ) ) return false;
 	
-	
-	Format( szPath, sizeof( szPath ), "%s/%s", szPath, g_szCurrentMap ); // records/bhop_map
+	// records/bhop_map
+	Format( szPath, sizeof( szPath ), "%s/%s", szPath, g_szCurrentMap );
 	if ( !ExCreateDir( szPath ) ) return false;
 
-	
-	Format( szPath, sizeof( szPath ), "%s/%s", szPath, g_szRunName[NAME_SHORT][ g_iClientRun[client] ] ); // records/bhop_map/M
+	// records/bhop_map/m
+	Format( szPath, sizeof( szPath ), "%s/%s", szPath, g_szRunDir[run] );
 	if ( !ExCreateDir( szPath ) ) return false;
 	
-	
-	Format( szPath, sizeof( szPath ), "%s/%s", szPath, g_szStyleName[NAME_SHORT][ g_iClientStyle[client] ] ); // records/bhop_map/M/HSW
+	// records/bhop_map/m/hsw
+	Format( szPath, sizeof( szPath ), "%s/%s", szPath, g_szStyleDir[style] );
 	if ( !ExCreateDir( szPath ) ) return false;
 	
+	// records/bhop_map/m/hsw/scrl
+	Format( szPath, sizeof( szPath ), "%s/%s", szPath, g_szModeDir[mode] );
+	if ( !ExCreateDir( szPath ) ) return false;
 	
-	Format( szPath, sizeof( szPath ), "%s/%s.rec", szPath, szSteamID ); // records/bhop_map/N/HSW/0_1_30495520
+	// records/bhop_map/m/hsw/1337
+	Format( szPath, sizeof( szPath ), "%s/%i.rec", szPath, id );
 	
 	Handle hFile = OpenFile( szPath, "wb" );
 	if ( hFile == null )
 	{
-		LogError( CONSOLE_PREFIX ... "Couldn't open file! (%s)", szPath );
+		LogError( CONSOLE_PREFIX..."Couldn't open file! (%s)", szPath );
 		return false;
 	}
 	
 	
-	int len = GetArraySize( g_hClientRecording[client] );
+	int len = hRec.Length;
 	
-	// Save file header
-	int iHeader[HEADER_SIZE];
-	
-	iHeader[HEADER_BINARYFORMAT] = BINARY_FORMAT;
-	iHeader[HEADER_TICKCOUNT] = len;
-	
-	ArrayCopy( g_vecInitPos[client], iHeader[HEADER_INITPOS], 3 );
-	ArrayCopy( g_vecInitAng[client], iHeader[HEADER_INITANGLES], 2 );
-	//iHeader[HEADER_TIME] = flTime;
-	
+	// Write header.
 	WriteFileCell( hFile, MAGIC_NUMBER, 4 );
-	WriteFileCell( hFile, iHeader[ view_as<int>(HEADER_BINARYFORMAT) ], 1 );
 	
 	
-	WriteFileCell( hFile, iHeader[ view_as<int>(HEADER_TICKCOUNT) ], 4 );
+	WriteFileCell( hFile, len, 4 );
+	WriteFileCell( hFile, RoundFloat( g_flTickRate ), 4 );
 	
-	WriteFileCell( hFile, view_as<int>(flTime), 4 );
+	WriteFileCell( hFile, run, 4 );
+	WriteFileCell( hFile, style, 4 );
+	WriteFileCell( hFile, mode, 4 );
 	
-	WriteFile( hFile, view_as<int>(iHeader[ view_as<int>(HEADER_INITPOS) ]), 3, 4 );
-	WriteFile( hFile, view_as<int>(iHeader[ view_as<int>(HEADER_INITANGLES) ]), 2, 4 );
+	WriteFileCell( hFile, view_as<int>( flTime ), 4 );
+	
+	WriteFileCell( hFile, jumps, 4 );
+	WriteFileCell( hFile, strafes, 4 );
+	
+	WriteFileString( hFile, g_szCurrentMap, true );
+	
+	WriteFileString( hFile, szName, true );
+	WriteFileString( hFile, szSteam, true );
+	
+	WriteFileCell( hFile, id, 4 );
 	
 	// Save frames on to the file.
 	int iFrame[FRAME_SIZE];
 	
-	for ( int i; i < len; i++ )
+	for ( int i = 0; i < len; i++ )
 	{
-		GetArrayArray( g_hClientRecording[client], i, iFrame, view_as<int>(FrameInfo) );
+		hRec.GetArray( i, iFrame, view_as<int>( RecData ) );
 		
-		if ( !WriteFile( hFile, iFrame, view_as<int>(FrameInfo), 4 ) )
+		if ( !WriteFile( hFile, iFrame, view_as<int>( RecData ), 4 ) )
 		{
-			LogError( CONSOLE_PREFIX ... "An error occured while trying to write on to a record file!" );
+			LogError( CONSOLE_PREFIX..."An error occured while trying to write on to a record file!" );
 			
 			delete hFile;
 			return false;
@@ -104,18 +130,18 @@ stock bool SaveRecording( int client, float flTime )
 	return true;
 }
 
-stock bool LoadRecording( char szSteamID[STEAMID_MAXLENGTH], int iRun, int iStyle )
+stock bool ForceLoadRecording( ArrayList &hRec )
 {
-	ReplaceString( szSteamID, STEAMID_MAXLENGTH, "STEAM_", "" );
+	char szPath[PLATFORM_MAX_PATH];
+	BuildPath( Path_SM, szPath, sizeof( szPath ), "records/force", g_szCurrentMap );
 	
-	// STEAM_0:1:30495520 to 0_1_30495520
-	for ( int i; i < 5; i++ )
-		if ( szSteamID[i] == ':' )
-			szSteamID[i] = '_';
-	
-	
+	return true;
+}
+
+stock bool LoadRecording( ArrayList &hRec, int &tickcount, int id, int iRun, int iStyle, int iMode )
+{
 	static char szPath[PLATFORM_MAX_PATH];
-	BuildPath( Path_SM, szPath, sizeof( szPath ), "records/%s/%s/%s/%s.rec", g_szCurrentMap, g_szRunName[NAME_SHORT][iRun], g_szStyleName[NAME_SHORT][iStyle], szSteamID );
+	BuildPath( Path_SM, szPath, sizeof( szPath ), "records/%s/%s/%s/%s/%i.rec", g_szCurrentMap, g_szRunDir[iRun], g_szStyleDir[iStyle], g_szModeDir[iMode], id );
 	
 	Handle hFile = OpenFile( szPath, "rb" );
 	
@@ -123,72 +149,73 @@ stock bool LoadRecording( char szSteamID[STEAMID_MAXLENGTH], int iRun, int iStyl
 	
 	
 	// GET HEADER
-	int iMagic;
-	ReadFileCell( hFile, iMagic, 4 );
+	int temp;
 	
-	if ( iMagic != MAGIC_NUMBER )
+	ReadFileCell( hFile, temp, 4 );
+	
+	if ( temp != MAGIC_NUMBER )
 	{
-		LogError( CONSOLE_PREFIX ... "Tried to read from a record with different magic number!" );
+		LogError( CONSOLE_PREFIX..."Tried to read from a recording with different magic number!" );
 		
 		delete hFile;
 		return false;
 	}
 	
 	
-	int iFormat;
-	ReadFileCell( hFile, iFormat, 1 );
+	ReadFileCell( hFile, tickcount, 4 );
 	
-	if ( iFormat != BINARY_FORMAT )
+	if ( tickcount < 1 )
 	{
-		LogError( CONSOLE_PREFIX ... "Tried to read from a record with different binary format!" );
+		delete hFile;
+		return false;
+	}
+	
+	
+	ReadFileCell( hFile, temp, 4 );
+	
+	if ( temp != RoundFloat( g_flTickRate ) )
+	{
+		LogError( CONSOLE_PREFIX..."Recording tickrate differs from server's tickrate! (Recording: %i / Server: %.0f)", temp, g_flTickRate );
 		
 		delete hFile;
 		return false;
 	}
 	
 	
-	ReadFileCell( hFile, g_iRecTickMax[iRun][iStyle], 4 );
+	// Record info
+	ReadFileCell( hFile, temp, 4 ); // Run
+	ReadFileCell( hFile, temp, 4 ); // Style
+	ReadFileCell( hFile, temp, 4 ); // Mode
 	
-	if ( g_iRecTickMax[iRun][iStyle] < 1 )
-	{
-		delete hFile;
-		return false;
-	}
-	
-	g_iRecMaxLength[iRun][iStyle] = RoundFloat( g_iRecTickMax[iRun][iStyle] * 1.2 );
+	ReadFileCell( hFile, temp, 4 ); // Time
 	
 	
-	int iHeader[HEADER_SIZE];
+	ReadFileCell( hFile, temp, 4 ); // JUMPS
+	ReadFileCell( hFile, temp, 4 ); // STRAFES
 	
-	if ( ReadFileCell( hFile, view_as<int>(iHeader[ view_as<int>(HEADER_TIME) ]), 4 ) == -1 )
-	{
-		LogError( CONSOLE_PREFIX ... "Tried to read from file with no time specified in the header(?)" );
-		return false;
-	}
-	
-	
-	ReadFile( hFile, view_as<int>(iHeader[ view_as<int>(HEADER_INITPOS) ]), 3, 4 );
-	ReadFile( hFile, view_as<int>(iHeader[ view_as<int>(HEADER_INITANGLES) ]), 2, 4 );
-	
-	//iHeader[ view_as<int>HEADER_INITANGLES ];
-	ArrayCopy( iHeader[ view_as<int>(HEADER_INITPOS) ], g_vecInitRecPos[iRun][iStyle], 3 );
-	ArrayCopy( iHeader[ view_as<int>(HEADER_INITANGLES) ], g_vecInitRecAng[iRun][iStyle], 2 );
+	char szSteam[MAX_ID_LENGTH];
+	char szTemp[32]; // Map name and player name both max length 32.
+	ReadFileString( hFile, szTemp, sizeof( szTemp ) );
+	ReadFileString( hFile, szTemp, sizeof( szTemp ) );
+	ReadFileString( hFile, szSteam, sizeof( szSteam ) );
+	ReadFileCell( hFile, temp, 4 ); // Id
 	
 	// GET FRAMES
 	int iFrame[FRAME_SIZE];
-	g_hRec[iRun][iStyle] = CreateArray( view_as<int>(FrameInfo) );
+	hRec = new ArrayList( view_as<int>( RecData ) );
 	
-	for ( int i; i < g_iRecTickMax[iRun][iStyle]; i++ )
+	for ( int i = 0; i < tickcount; i++ )
 	{
-		if ( ReadFile( hFile, iFrame, view_as<int>(FrameInfo), 4 ) == -1 )
+		if ( ReadFile( hFile, iFrame, view_as<int>( RecData ), 4 ) == -1 )
 		{
-			LogError( CONSOLE_PREFIX ... "An unexpected end of file while reading from frame data!" );
+			LogError( CONSOLE_PREFIX..."An unexpected end of file while reading from frame data!" );
 			
 			delete hFile;
 			return false;
 		}
 		
-		PushArrayArray( g_hRec[iRun][iStyle], iFrame, view_as<int>(FrameInfo) );
+		
+		hRec.PushArray( iFrame, view_as<int>( RecData ) );
 	}
 	
 	delete hFile;
@@ -196,43 +223,85 @@ stock bool LoadRecording( char szSteamID[STEAMID_MAXLENGTH], int iRun, int iStyl
 	return true;
 }
 
-// Pretty much useless functions.
-stock bool RemoveAllRecords( int iRun, int iStyle )
+stock int RemoveAllRecordings( int iRun )
 {
-	static char szPath[PLATFORM_MAX_PATH];
-	BuildPath( Path_SM, szPath, sizeof( szPath ), "records/%s/%s/%s", g_szCurrentMap, g_szRunName[NAME_SHORT][iRun], g_szStyleName[NAME_SHORT][iStyle] );
-	
-	Handle hDir = OpenDirectory( szPath );
-	
-	if ( hDir == null ) return false;
+	char szPath_Root[PLATFORM_MAX_PATH];
+	BuildPath( Path_SM, szPath_Root, sizeof( szPath_Root ), "records/%s/%s", g_szCurrentMap, g_szRunDir[iRun] );
 	
 	
-	static char	szFile[64];
-	static char	szFilePath[PLATFORM_MAX_PATH];
+	if ( !DirExists( szPath_Root ) ) return 0;
 	
-	while ( ReadDirEntry( hDir, szFile, sizeof( szFile ) ) )
+	
+	char szPath_Style[PLATFORM_MAX_PATH];
+	char szPath_Mode[PLATFORM_MAX_PATH];
+	char szFile[PLATFORM_MAX_PATH];
+	
+	int num;
+	
+	int len;
+	int dotpos;
+	
+	for ( int s = 0; s < sizeof( g_szStyleDir ); s++ )
 	{
-		FormatEx( szFilePath, sizeof( szFilePath ), "%s/%s", szPath, szFile );
+		FormatEx( szPath_Style, sizeof( szPath_Style ), "%s/%s", szPath_Root, g_szStyleDir[s] );
 		
-		if ( !FileExists( szFilePath ) ) continue;
+		if ( !DirExists( szPath_Style ) ) continue;
 		
 		
-		DeleteFile( szFilePath );
+		for ( int m = 0; m < sizeof( g_szModeDir ); m++ )
+		{
+			FormatEx( szPath_Mode, sizeof( szPath_Mode ), "%s/%s", szPath_Style, g_szModeDir[m] );
+		
+			if ( !DirExists( szPath_Mode ) ) continue;
+			
+			
+			DirectoryListing hDir = OpenDirectory( szPath_Mode );
+			
+			if ( hDir == null ) continue;
+			
+			while ( hDir.GetNext( szFile, sizeof( szFile ) ) )
+			{
+				// . and ..
+				if ( szFile[0] == '.' || szFile[0] == '\0' ) continue;
+				
+				// Check file extension.
+				len = strlen( szFile );
+				dotpos = 0;
+				
+				for ( int i = 0; i < len; i++ )
+				{
+					if ( szFile[i] == '.' ) dotpos = i;
+				}
+
+				
+				if ( !StrEqual( szFile[dotpos], ".rec" ) ) continue;
+				
+				
+				Format( szFile, sizeof( szFile ), "%s/%s", szPath_Mode, szFile );
+				
+#if defined DEV
+				PrintToServer( CONSOLE_PREFIX..."Deleting recording \"%s\"", szFile );
+#endif
+				
+				if ( DeleteFile( szFile ) )
+					num++;
+			}
+			
+			delete hDir;
+		}
 	}
 	
-	return true;
+#if defined DEV
+	PrintToServer( CONSOLE_PREFIX..."Removed %i recording files.", num );
+#endif
+	
+	return num;
 }
 
-stock bool RemoveRecord( char szSteamID[STEAMID_MAXLENGTH], int iRun, int iStyle )
+stock bool RemoveRecording( int id, int iRun, int iStyle, int iMode )
 {
-	ReplaceString( szSteamID, STEAMID_MAXLENGTH, "STEAM_", "" );
-	
-	// STEAM_0:1:30495520 to 0_1_30495520
-	for ( int i; i < 5; i++ )
-		if ( szSteamID[i] == ':' )
-			szSteamID[i] = '_';
-	
-	BuildPath( Path_SM, szPath, sizeof( szPath ), "records/%s/%s/%s/%s.rec", g_szCurrentMap, g_szRunName[NAME_SHORT][iRun], g_szStyleName[NAME_SHORT][iStyle], szSteamID );
+	char szPath[PLATFORM_MAX_PATH];
+	BuildPath( Path_SM, szPath, sizeof( szPath ), "records/%s/%s/%s/%s/%i.rec", g_szCurrentMap, g_szRunDir[iRun], g_szStyleDir[iStyle], g_szModeDir[iMode], id );
 	
 	if ( !FileExists( szPath ) ) return false;
 	
