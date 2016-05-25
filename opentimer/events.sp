@@ -216,10 +216,10 @@ public Action Event_ClientJump( Handle hEvent, const char[] szEvent, bool bDontB
 	if ( g_iClientState[client] != STATE_END )
 		g_nClientJumps[client]++;
 	
-	if ( g_bEZHop && !HasScroll( client ) )
+	/*if ( g_bEZHop && !HasScroll( client ) )
 	{
 		SetEntPropFloat( client, Prop_Send, "m_flStamina", 0.0 );
-	}
+	}*/
 }
 
 /*public Action Event_ClientHurt( Handle hEvent, const char[] szEvent, bool bDontBroadcast )
@@ -266,8 +266,8 @@ public void Event_RoundRestart_Delay( any data )
 	// Anti-doublestep
 	public Action Listener_AntiDoublestep_On( int client, const char[] szCommand, int argc )
 	{
-		if ( !HasScroll( client ) )
-			g_bClientHoldingJump[client] = true;
+		//if ( !HasScroll( client ) )
+		//	g_bClientHoldingJump[client] = true;
 		
 		return Plugin_Handled;
 	}

@@ -91,7 +91,7 @@ forward void Timer_OnStateChanged( int client, PlayerState state );
 
 forward void Timer_OnModeChanged( int client, int mode );
 
-native int Timer_HasScroll( int client );
+//native int Timer_HasScroll( int client );
 native PlayerState Timer_GetState( int client );
 
 native int Timer_GetRun( int client );

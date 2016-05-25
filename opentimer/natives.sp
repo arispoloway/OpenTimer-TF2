@@ -1,9 +1,9 @@
 // TO-DO: Fool proof.
 
-public int Native_HasScroll( Handle hPlugin, int numParams )
+/*public int Native_HasScroll( Handle hPlugin, int numParams )
 {
 	return HasScroll( GetNativeCell( 1 ) );
-}
+}*/
 
 public int Native_GetState( Handle hPlugin, int numParams )
 {

@@ -53,11 +53,11 @@ public Action OnPlayerRunCmd(	int client,
 #endif
 		}
 		// AUTOHOP
-		else if ( bIsInValidAir && !HasScroll( client ) )
+		/*else if ( bIsInValidAir && !HasScroll( client ) )
 		{
 			buttons &= ~IN_JUMP;
 			//SetClientOldButtons( client, GetClientOldButtons( client ) & ~IN_JUMP );
-		}
+		}*/
 		
 		// Reset field of view in case they reloaded their gun.
 		if ( buttons & IN_RELOAD )

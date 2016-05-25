@@ -1304,7 +1304,7 @@ public void Event_PreThinkPost_Client( int client )
 	// Set our sv_airaccelerate value to client's preferred style.
 	// Airmove calculates acceleration by taking the sv_airaccelerate-cvar value.
 	// This means we can change the value before the calculations happen.
-	SetConVarFloat( g_ConVar_AirAccelerate, ( HasScroll( client ) ) ? g_flBhopAirAccelerate : g_flDefAirAccelerate );
+	//SetConVarFloat( g_ConVar_AirAccelerate, ( HasScroll( client ) ) ? g_flBhopAirAccelerate : g_flDefAirAccelerate );
 }
 
 // Used just here.
@@ -1369,13 +1369,13 @@ public void Event_PostThinkPost_Client( int client )
 		g_flClientStartTime[client] = GetEngineTime();
 		
 		
-		if ( HasScroll( client ) && !g_bClientValidFPS[client] )
+		/*if ( HasScroll( client ) && !g_bClientValidFPS[client] )
 		{
 			if ( !IsSpamming( client ) )
 				PRINTCHAT( client, CHAT_PREFIX..."Your FPS must be legit to be recorded!" );
 			
 			SetPlayerPractice( client, true );
-		}
+		}*/
 		
 		
 		g_flClientSync[client][STRAFE_LEFT] = 1.0;
@@ -1440,10 +1440,10 @@ public void Event_PostThinkPost_Client( int client )
 		g_flClientFinishTime[client] = flNewTime;
 		
 		// Save the time if we're not practising, our time is valid and our fps is legit.
+		//&&	!( HasScroll( client ) && !g_bClientValidFPS[client] )
 		if (	!g_bClientPractising[client]
 			&&	flNewTime > TIME_INVALID
-			&&	flNewTime > 1.0
-			&&	!( HasScroll( client ) && !g_bClientValidFPS[client] ) )
+			&&	flNewTime > 1.0	 )
 		{
 #if defined RECORD
 			// Add a final frame to the recording in case we happened to teleport somewhere on the same tick.
@@ -2188,10 +2188,10 @@ stock void ResetBuilding( int client )
 	g_iBuilderZone[client] = ZONE_INVALID;
 }
 
-stock bool HasScroll( int client )
+/*stock bool HasScroll( int client )
 {
 	return ( g_iClientMode[client] != MODE_AUTO );
-}
+}*/
 
 stock void CheckZones()
 {
