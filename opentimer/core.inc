@@ -50,7 +50,7 @@ enum
 enum
 {
 	MODE_INVALID = -1,
-	
+	 
 	MODE_SCOUT,
 	MODE_SOLDIER,
 	MODE_PYRO,
