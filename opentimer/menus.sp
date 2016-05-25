@@ -298,8 +298,8 @@ public Action Command_Style( int client, int args )
 	//mMenu.AddItem( "scrl", ( g_iClientMode[client] == MODE_AUTO ) ? "Autobhop: ON" : "Autobhop: OFF" );
 	
 	// "XXXXXvel: OFF"
-	char szItem[14];
-	FormatEx( szItem, sizeof( szItem ), "%.0fvel: %s\n ", g_flVelCap, ( g_iClientMode[client] == MODE_VELCAP ) ? "ON" : "OFF" );
+	//char szItem[14];
+	//FormatEx( szItem, sizeof( szItem ), "%.0fvel: %s\n ", g_flVelCap, ( g_iClientMode[client] == MODE_VELCAP ) ? "ON" : "OFF" );
 	//mMenu.AddItem( "vel", szItem, ( g_iClientMode[client] == MODE_AUTO ) ? ITEMDRAW_DISABLED : 0 );
 	
 	for ( int i = 0; i < NUM_STYLES; i++ )

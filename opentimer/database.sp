@@ -274,7 +274,7 @@ stock void DB_Admin_CPRecords_DeleteMenu( int client, int run )
 	SQL_TQuery( g_hDatabase, Threaded_Admin_CPRecords_DeleteMenu, szQuery, hData, DBPrio_Normal );
 }
 
-stock void DB_DisplayClientRank( int client, int run = RUN_MAIN, int style = STYLE_NORMAL, int mode = MODE_AUTO )
+stock void DB_DisplayClientRank( int client, int run = RUN_MAIN, int style = STYLE_NORMAL, int mode = MODE_INVALID )
 {
 	if ( g_flClientBestTime[client][run][style][mode] <= TIME_INVALID ) return;
 	

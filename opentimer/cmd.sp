@@ -28,6 +28,7 @@ public Action OnPlayerRunCmd(	int client,
 		if ( bOnGround )
 		{
 			// VELCAP
+			/*
 			if ( g_iClientMode[client] == MODE_VELCAP && !( g_fClientFreestyleFlags[client] & ZONE_VEL_NOSPEEDCAP ) )
 			{
 				static float vecVel[3];
@@ -45,7 +46,7 @@ public Action OnPlayerRunCmd(	int client,
 					
 					TeleportEntity( client, NULL_VECTOR, NULL_VECTOR, vecVel );
 				}
-			}
+			}*/
 			
 #if defined ANTI_DOUBLESTEP
 			if ( g_bClientHoldingJump[client] ) buttons |= IN_JUMP;

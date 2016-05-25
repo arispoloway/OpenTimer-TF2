@@ -518,11 +518,11 @@ ConVar g_ConVar_VelCap;
 ConVar g_ConVar_LegitFPS;
 
 // Cvar cache variables.
-float g_flDefAirAccelerate = 1000.0;
-float g_flScrollAirAccelerate = 100.0;
+float g_flDefAirAccelerate = 10.0;
+float g_flBhopAirAccelerate = 100.0;
 float g_flPreSpeed = 278.0;
 float g_flPreSpeedSq = 90000.0;
-bool g_bEZHop = true;
+bool g_bEZHop = false;
 bool g_bIgnoreLadderStyle = true;
 #if defined RECORD
 	bool g_bSmoothPlayback = true;
@@ -857,9 +857,9 @@ public void OnPluginStart()
 	g_ConVar_Allow_AD = CreateConVar( "timer_allow_ad", "1", "Is A/D-Only-style allowed?", FCVAR_NOTIFY, true, 0.0, true, 1.0 );
 	
 	g_ConVar_Def_Mode = CreateConVar( "timer_def_mode", "0", "What mode is the default one? 0 = Autobhop, 1 = Scroll, 2 = Scroll + VelCap", _, true, 0.0, true, 2.0 );
-	g_ConVar_Allow_Mode_Auto = CreateConVar( "timer_allow_mode_auto", "1", "Is Autobhop-mode allowed?", FCVAR_NOTIFY, true, 0.0, true, 1.0 );
-	g_ConVar_Allow_Mode_Scroll = CreateConVar( "timer_allow_mode_scroll", "1", "Is Scroll-mode allowed?", FCVAR_NOTIFY, true, 0.0, true, 1.0 );
-	g_ConVar_Allow_Mode_VelCap = CreateConVar( "timer_allow_mode_velcap", "1", "Is VelCap-mode allowed?", FCVAR_NOTIFY, true, 0.0, true, 1.0 );
+	//g_ConVar_Allow_Mode_Auto = CreateConVar( "timer_allow_mode_auto", "1", "Is Autobhop-mode allowed?", FCVAR_NOTIFY, true, 0.0, true, 1.0 );
+	//g_ConVar_Allow_Mode_Scroll = CreateConVar( "timer_allow_mode_scroll", "1", "Is Scroll-mode allowed?", FCVAR_NOTIFY, true, 0.0, true, 1.0 );
+	//g_ConVar_Allow_Mode_VelCap = CreateConVar( "timer_allow_mode_velcap", "1", "Is VelCap-mode allowed?", FCVAR_NOTIFY, true, 0.0, true, 1.0 );
 	
 	g_ConVar_VelCap = CreateConVar( "timer_velcap_limit", "400", "What is the speed limit for VelCap-mode?", FCVAR_NOTIFY, true, 250.0, true, 3500.0 );
 	g_ConVar_LegitFPS = CreateConVar( "timer_fps_style", "1", "How do we determine player's FPS in scroll modes? 0 = No limit. 1 = FPS can be more or equal to server's tickrate. 2 = FPS must be 300.", FCVAR_NOTIFY, true, 0.0, true, 2.0 );
@@ -904,7 +904,7 @@ public void OnConfigsExecuted()
 	g_flVelCapSq = g_flVelCap * g_flVelCap;
 	
 	g_flDefAirAccelerate = GetConVarFloat( g_ConVar_Def_AirAccelerate );
-	g_flScrollAirAccelerate = GetConVarFloat( g_ConVar_Scroll_AirAccelerate );
+	g_flBhopAirAccelerate = GetConVarFloat( g_ConVar_Scroll_AirAccelerate );
 }
 
 public void Event_ConVar_EZHop( Handle hConVar, const char[] szOldValue, const char[] szNewValue )
@@ -943,7 +943,7 @@ public void Event_ConVar_Def_AirAccelerate( Handle hConVar, const char[] szOldVa
 
 public void Event_ConVar_Scroll_AirAccelerate( Handle hConVar, const char[] szOldValue, const char[] szNewValue )
 {
-	g_flScrollAirAccelerate = StringToFloat( szNewValue );
+	g_flBhopAirAccelerate = StringToFloat( szNewValue );
 }
 
 public void OnMapStart()
@@ -1304,7 +1304,7 @@ public void Event_PreThinkPost_Client( int client )
 	// Set our sv_airaccelerate value to client's preferred style.
 	// Airmove calculates acceleration by taking the sv_airaccelerate-cvar value.
 	// This means we can change the value before the calculations happen.
-	SetConVarFloat( g_ConVar_AirAccelerate, ( HasScroll( client ) ) ? g_flScrollAirAccelerate : g_flDefAirAccelerate );
+	SetConVarFloat( g_ConVar_AirAccelerate, ( HasScroll( client ) ) ? g_flBhopAirAccelerate : g_flDefAirAccelerate );
 }
 
 // Used just here.
@@ -1532,7 +1532,7 @@ stock bool IsAllowedZone( int client, int flags )
 		case STYLE_HSW : if ( !(flags & ZONE_ALLOW_HSW) ) return false;
 		case STYLE_A_D : if ( !(flags & ZONE_ALLOW_A_D) ) return false;
 	}
-	
+	/*
 	if ( g_iClientMode[client] == MODE_SCROLL && !(flags & ZONE_ALLOW_SCROLL) )
 	{
 		return false;
@@ -1542,7 +1542,7 @@ stock bool IsAllowedZone( int client, int flags )
 	{
 		return false;
 	}
-	
+	*/
 	return true;
 }
 
@@ -1624,7 +1624,7 @@ stock void SetPlayerStyle( int client, int reqstyle )
 	UpdateScoreboard( client );
 }
 
-stock bool IsAllowedMode( int mode )
+/*stock bool IsAllowedMode( int mode )
 {
 	switch ( mode )
 	{
@@ -1643,25 +1643,13 @@ stock int FindAllowedMode()
 	else if ( IsAllowedMode( MODE_VELCAP ) ) return MODE_VELCAP;
 	
 	return MODE_AUTO;
-}
+}*/
 
 stock void SetPlayerMode( int client, int mode )
 {
-	if ( g_iClientMode[client] == mode )
-	{
-		mode = ( mode == MODE_VELCAP || mode == MODE_AUTO ) ? MODE_SCROLL : MODE_AUTO;
-	}
-	
-	float flNewAirAccel = ( mode == MODE_AUTO ) ? g_flDefAirAccelerate : g_flScrollAirAccelerate;
-	
-	SetClientPredictedAirAcceleration( client, flNewAirAccel );
-	
-	PRINTCHATV( client, CHAT_PREFIX..."Your air acceleration is now "...CLR_TEAM..."%.0f"...CLR_TEXT..."!", flNewAirAccel );
+	mode = getClass(client);
 	
 	g_iClientMode[client] = mode;
-	
-	if ( mode != MODE_AUTO && GetConVarInt( g_ConVar_LegitFPS ) )
-		QueryClientConVar( client, "fps_max", FPSQueryCallback );
 	
 	PrintStyle( client );
 	
@@ -2300,6 +2288,7 @@ stock void GetStylePostfix( int mode, char szTarget[STYLEPOSTFIX_LENGTH], bool b
 	// " Scroll"
 	// " XXXXXvel"
 	// " VELCAP"
+	/*
 	switch ( mode )
 	{
 		case MODE_SCROLL :
@@ -2315,7 +2304,7 @@ stock void GetStylePostfix( int mode, char szTarget[STYLEPOSTFIX_LENGTH], bool b
 			else FormatEx( szTarget, sizeof( szTarget ), " %.0fvel", g_flVelCap );
 		}
 		default : strcopy( szTarget, sizeof( szTarget ), "" );
-	}
+	}*/
 }
 
 stock void ParseRecordString( char[] szRec, int &type, int &num )
@@ -2370,20 +2359,50 @@ stock void ParseRecordString( char[] szRec, int &type, int &num )
 	}
 	
 	// MODES
-	else if ( StrEqual( szRec, "auto", false ) || StrEqual( szRec, "autobhop", false ) )
+	else if ( StrEqual( szRec, "sc", false ) || StrEqual( szRec, "scout", false ) )
 	{
 		type = RECORDTYPE_MODE;
-		num = MODE_AUTO;
+		num = MODE_SCOUT;
 	}
-	else if ( StrEqual( szRec, "legit", false ) || StrEqual( szRec, "scroll", false ) || StrEqual( szRec, "l", false ) || StrEqual( szRec, "s", false ) )
+	else if ( StrEqual( szRec, "so", false ) || StrEqual( szRec, "soldier", false ) )
 	{
 		type = RECORDTYPE_MODE;
-		num = MODE_SCROLL;
+		num = MODE_SOLDIER;
 	}
-	else if ( StrEqual( szRec, "vel", false ) || StrEqual( szRec, "400vel", false ) || StrEqual( szRec, "velcap", false ) || StrEqual( szRec, "v", false ) || StrEqual( szRec, "400", false ) )
+	else if ( StrEqual( szRec, "py", false ) || StrEqual( szRec, "pyro", false ) )
 	{
 		type = RECORDTYPE_MODE;
-		num = MODE_VELCAP;
+		num = MODE_PYRO;
+	}
+	else if ( StrEqual( szRec, "de", false ) || StrEqual( szRec, "demo", false ) || StrEqual( szRec, "demoman", false ))
+	{
+		type = RECORDTYPE_MODE;
+		num = MODE_DEMOMAN;
+	}
+	else if ( StrEqual( szRec, "he", false ) || StrEqual( szRec, "heavy", false ) )
+	{
+		type = RECORDTYPE_MODE;
+		num = MODE_HEAVY;
+	}
+	else if ( StrEqual( szRec, "en", false ) || StrEqual( szRec, "engi", false ) || StrEqual( szRec, "engineer", false ))
+	{
+		type = RECORDTYPE_MODE;
+		num = MODE_ENGINEER;
+	}
+	else if ( StrEqual( szRec, "sn", false ) || StrEqual( szRec, "sniper", false ) )
+	{
+		type = RECORDTYPE_MODE;
+		num = MODE_SNIPER;
+	}
+	else if ( StrEqual( szRec, "me", false ) || StrEqual( szRec, "med", false ) || StrEqual( szRec, "medic", false ))
+	{
+		type = RECORDTYPE_MODE;
+		num = MODE_MEDIC;
+	}
+	else if ( StrEqual( szRec, "sp", false ) || StrEqual( szRec, "spy", false ) )
+	{
+		type = RECORDTYPE_MODE;
+		num = MODE_SPY;
 	}
 	else
 	{
@@ -2764,25 +2783,25 @@ stock void GetReason( CheatReason reason, char[] szReason, int len, bool bShort 
 }
 public int getClass(int client)
 {
-int class = 0;
-if (IsClientInGame(client) && IsPlayerAlive(client))
-{
+	int class = 0;
+	if (IsClientInGame(client) && IsPlayerAlive(client))
+	{
 
-TFClassType playerClass = TF2_GetPlayerClass(client);
+		TFClassType playerClass = TF2_GetPlayerClass(client);
 
-switch(playerClass)
-{
-case TFClass_Scout    : class = 0;
-case TFClass_Soldier  : class = 1;
-case TFClass_Pyro     : class = 2;
-case TFClass_DemoMan  : class = 3;
-case TFClass_Heavy    : class = 4;
-case TFClass_Engineer : class = 5;
-case TFClass_Sniper   : class = 6;
-case TFClass_Medic    : class = 7;
-case TFClass_Spy      : class = 8;
-}
-}
-return class;
+		switch(playerClass)
+		{
+			case TFClass_Scout    : class = 0;
+			case TFClass_Soldier  : class = 1;
+			case TFClass_Pyro     : class = 2;
+			case TFClass_DemoMan  : class = 3;
+			case TFClass_Heavy    : class = 4;
+			case TFClass_Engineer : class = 5;
+			case TFClass_Sniper   : class = 6;
+			case TFClass_Medic    : class = 7;
+			case TFClass_Spy      : class = 8;
+		}
+	}
+	return class;
 }
 

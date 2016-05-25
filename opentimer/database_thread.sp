@@ -384,12 +384,14 @@ public void Threaded_RetrieveClientData( Handle hOwner, Handle hQuery, const cha
 		{
 			int style = SQL_FetchInt( hQuery, 3 );
 			
-			g_iClientStyle[client] = IsAllowedStyle( style ) ? style : STYLE_NORMAL;
+			//g_iClientStyle[client] = IsAllowedStyle( style ) ? style : STYLE_NORMAL;
+			g_iClientStyle[client] = style;
 			
 			
 			int mode = SQL_FetchInt( hQuery, 4 );
 			
-			g_iClientMode[client] = IsAllowedMode( mode ) ? mode : FindAllowedMode();
+			//g_iClientMode[client] = IsAllowedMode( mode ) ? mode : FindAllowedMode();
+			g_iClientMode[client] = mode;
 		}
 		
 		g_iClientFinishes[client] = SQL_FetchInt( hQuery, 5 );
@@ -695,7 +697,7 @@ public void Threaded_Init_Records( Handle hOwner, Handle hQuery, const char[] sz
 		
 		// Load records from disk.
 		// Assigning the records to bots are done in OnClientPutInServer()
-		if ( bNormalOnly && iRun != RUN_MAIN && iStyle != STYLE_NORMAL && iMode != MODE_AUTO ) continue;
+		//if ( bNormalOnly && iRun != RUN_MAIN && iStyle != STYLE_NORMAL && iMode != MODE_AUTO ) continue;
 		
 		
 		id = SQL_FetchInt( hQuery, 4 );

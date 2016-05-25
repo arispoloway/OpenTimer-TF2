@@ -132,6 +132,8 @@ public Action Event_ClientSpawn( Handle hEvent, const char[] szEvent, bool bDont
 	SetEntProp( client, Prop_Send, "m_CollisionGroup", IsFakeClient( client ) ? 1 : 2 );
 	
 	CreateTimer( 0.1, Timer_ClientSpawn, GetClientUserId( client ), TIMER_FLAG_NO_MAPCHANGE );
+	
+	g_iClientMode[client] = getClass(client);
 }
 
 // Continued from above event.
@@ -300,10 +302,10 @@ public void Event_StartTouchPost_Freestyle( int trigger, int ent )
 		static char szMsg[32];
 		strcopy( szMsg, sizeof( szMsg ), IsAllowedZone( ent, g_fClientFreestyleFlags[ent] ) ? "FREESTYLE ALLOWED " : "" );
 		
-		if ( g_iClientMode[ent] == MODE_VELCAP && g_fClientFreestyleFlags[ent] & ZONE_VEL_NOSPEEDCAP )
-		{
-			StrCat( szMsg, sizeof( szMsg ), "[NO SPEEDCAP]" );
-		}
+		//if ( g_iClientMode[ent] == MODE_VELCAP && g_fClientFreestyleFlags[ent] & ZONE_VEL_NOSPEEDCAP )
+		//{
+		//	StrCat( szMsg, sizeof( szMsg ), "[NO SPEEDCAP]" );
+		//}
 		
 		PrintCenterText( ent, szMsg );
 		

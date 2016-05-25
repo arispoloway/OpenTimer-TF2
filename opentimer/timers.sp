@@ -18,7 +18,7 @@ public Action Timer_Connected( Handle hTimer, int client )
     if ( !(client = GetClientOfUserId( client )) ) return Plugin_Handled;
    
    
-    PRINTCHATV( client,  CLR_CUSTOM1..."Server settings: %.0ftick, %.0f/%.0faa.", g_flTickRate, g_flDefAirAccelerate, g_flScrollAirAccelerate );
+    PRINTCHATV( client,  CLR_CUSTOM1..."Server settings: %.0ftick, %.0f/%.0faa.", g_flTickRate, g_flDefAirAccelerate, g_flBhopAirAccelerate );
    
     PRINTCHAT( client, CHAT_PREFIX..."Type "...CLR_TEAM..."!commands"...CLR_TEXT..." for more info." );
    
