@@ -19,11 +19,7 @@ Handle g_hDatabase;
 
 stock bool GetClientSteam( int client, char[] szSteam, int len )
 {
-#if defined CSGO
-	if ( !GetClientAuthId( client, AuthId_Engine, szSteam, len ) )	
-#else
 	if ( !GetClientAuthId( client, AuthId_Steam3, szSteam, len ) )
-#endif
 	{
 		LogError( CONSOLE_PREFIX..."Couldn't retrieve player's \"%N\" Steam Id!", client );
 		return false;
@@ -316,7 +312,7 @@ stock bool DB_SaveClientRecord( int client, float flNewTime )
 	
 	run = g_iClientRun[client];
 	style = g_iClientStyle[client];
-	mode = g_iClientMode[client];
+	mode = getClass(client);
 	flOldBestTime = g_flClientBestTime[client][run][style][mode];
 	
 	static char szQuery[256];

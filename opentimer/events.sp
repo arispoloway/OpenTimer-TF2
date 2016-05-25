@@ -32,18 +32,10 @@ public Action Event_ClientDeath( Handle hEvent, const char[] szEvent, bool bDont
 // First byte is always the author and in name changes they are the 'changeer'.
 // Since we only want to block bot name changes, we can just block all of their messages.
 public Action Event_SayText2( UserMsg msg_id,
-#if defined CSGO
-	Protobuf pbMsg,
-#else
 	BfRead bfMsg,
-#endif
 	const int[] players, int iPlayers, bool reliable, bool init )
 {
-#if defined CSGO
-	int author = pbMsg.ReadInt( "ent_idx" );
-#else
 	int author = bfMsg.ReadByte();
-#endif
 	
 	return ( author && IsFakeClient( author ) ) ? Plugin_Handled : Plugin_Continue;
 }
@@ -55,14 +47,8 @@ public Action OnClientSayCommand( int client, const char[] szCommand, const char
 {
 	if ( !client || BaseComm_IsClientGagged( client ) ) return Plugin_Continue;
 	
-	
-#if defined CSGO
-	PrintColorChatAll( client, CLR_TEAM..."%N\x01: %s", client, szArgs );
-	PrintToServer( "%N: %s", client, szArgs );
-#else
 	PrintColorChatAll( client, CLR_TEAM..."%N\x01 :  %s", client, szArgs );
 	PrintToServer( "%N :  %s", client, szArgs );
-#endif
 	
 	return Plugin_Handled;
 }
@@ -114,6 +100,7 @@ public Action Event_ClientSpawn( Handle hEvent, const char[] szEvent, bool bDont
 	
 	if ( g_ClientResume[client][RESUME_RUN] == RUN_INVALID )
 		TeleportPlayerToStart( client );
+		
 	
 	DisableResume( client );
 	
@@ -248,10 +235,18 @@ public Action Event_ClientJump( Handle hEvent, const char[] szEvent, bool bDontB
 
 public Action Event_OnTakeDamage_Client( int victim, int &attacker, int &inflictor, float &flDamage, int &fDamage )
 {
-	if ( g_bEZHop && !HasScroll( victim ) ) return Plugin_Handled;
-
-	flDamage = 0.0;
-	return Plugin_Changed;
+	//if ( g_bEZHop && !HasScroll( victim ) ) return Plugin_Handled;
+	if ( IsFakeClient( victim ) )
+	{
+		flDamage = 0.0;
+		TF2_RegeneratePlayer(victim);
+		return Plugin_Changed;
+	}
+	if ( IsFakeClient( attacker ) )
+	{
+		flDamage = 0.0;
+		return Plugin_Changed;
+	}
 }
 
 public Action Event_RoundRestart( Handle hEvent, const char[] szEvent, bool bDontBroadcast )
@@ -429,15 +424,7 @@ public void Event_StartTouchPost_CheckPoint( int trigger, int ent )
 				prefix = '+';
 			}
 			
-#if defined CSGO
-			PrintCenterText( ent, "CP #%i (REC <font color='%s'>%c%06.3fs</font>)",
-				id + 1,
-				( prefix == '+' ) ? CLR_HINT_1 : CLR_HINT_2,
-				prefix,
-				flLeft );
-#else
 			PrintCenterText( ent, "CP #%i (REC %c%06.3fs)", id + 1, prefix, flLeft );
-#endif
 		}
 	}
 	

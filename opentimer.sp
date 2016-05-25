@@ -28,7 +28,7 @@
 #define ANTI_DOUBLESTEP // Let people fix their non-perfect jumps. Used for autobhop.
 // Disabled by default because not necessary.
 
-#define DELETE_ENTS // Comment out to keep some entities. (func_doors, func_movelinears, etc.)
+//#define DELETE_ENTS // Comment out to keep some entities. (func_doors, func_movelinears, etc.)
 // This was originally used for surf maps. If you want old bhop maps with platforms don't uncomment.
 
 #define DEV
@@ -41,7 +41,7 @@
 
 // 60 * minutes * tickrate
 // E.g: 60 * 45 * 100 = 270 000
-#define	RECORDING_MAX_LENGTH 270000 // Maximum recording length (def. 45 minutes with 100tick)
+#define	RECORDING_MAX_LENGTH 350000 // Maximum recording length (def. 45 minutes with 100tick)
 
 #define RECORDS_PRINT_MAX	15 // Maximum records to print for players.
 #define CHEATS_PRINT_MAX	30 // Maximum cheat history records to print.
@@ -55,21 +55,7 @@
 //
 // You can then put your own text after it:
 // \x07FFFFFFThis text is white!
-#if defined CSGO
-	// CS:GO colors.
-	#define CLR_HINT_1		"#66FF33" // Lime green
-	#define CLR_HINT_2		"#FF3333" // Red (warnings)
-	
-	#define CLR_CUSTOM1		"\x06" // Lime green
-	#define CLR_CUSTOM2		"\x0B" // Light blue
-	#define CLR_CUSTOM3		"\x07" // Light red
-	#define CLR_CUSTOM4		CLR_TEAM
-	
-	#define CLR_TEXT		"\x01"
-	#define CLR_TEAM		"\x09"
-	
-	#define CHAT_PREFIX		" \x0C[\x0F"...PLUGIN_NAME_CORE..."\x0C] "...CLR_TEXT
-#else
+
 	// CSS colors.
 	#define CLR_CUSTOM1		"\x0766CCCC" // Teal
 	#define CLR_CUSTOM2		"\x073399FF" // Light blue
@@ -80,7 +66,7 @@
 	#define CLR_TEAM		"\x03" // Team color
 	
 	#define CHAT_PREFIX		"\x072F2F2F[\x07D01265"...PLUGIN_NAME_CORE..."\x072F2F2F] "...CLR_TEXT
-#endif
+
 
 
 
@@ -88,20 +74,13 @@
 // -------------------------------------------------------------------
 
 // Variadic preprocessor function doesn't actually require anything significant, it seems.
-#if defined CSGO
-	// V postfix means variadic (formatting).
-	#define PRINTCHATV(%0,%1,%2) ( PrintToChat( %0, %1, %2 ) )
-	#define PRINTCHAT(%0,%1) ( PrintToChat( %0, %1 ) )
-#else
 	#define PRINTCHATV(%0,%1,%2) ( PrintColorChat( %0, %1, %2 ) )
 	#define PRINTCHAT(%0,%1) ( PrintColorChat( %0, %1 ) )
-#endif
 
-#if defined CSGO
-	#define PREF_SECONDARY "weapon_hkp2000"
-#else
+
+
 	#define PREF_SECONDARY "weapon_usp"
-#endif
+
 
 // This has to be AFTER include files because not all natives are translated to 1.7!!!
 #pragma semicolon 1
@@ -496,30 +475,10 @@ char g_szStyleName[NUM_NAMES][NUM_STYLES][9] =
 	{ "N", "SW", "W", "SHSW", "BHSW", "A/D" }
 };
 // First one is always the normal ending sound!
-#if defined CSGO
 	char g_szWinningSounds[][] =
 	{
-		"buttons/button16.wav",
-		"player/vo/sas/onarollbrag13.wav",
-		"player/vo/sas/onarollbrag03.wav",
-		"player/vo/phoenix/onarollbrag11.wav",
-		"player/vo/anarchist/onarollbrag13.wav",
-		"player/vo/separatist/onarollbrag01.wav",
-		"player/vo/seal/onarollbrag08.wav"
+		"misc/happy_birthday.wav",
 	};
-#else
-	char g_szWinningSounds[][] =
-	{
-		"buttons/button16.wav",
-		"bot/i_am_on_fire.wav",
-		"bot/its_a_party.wav",
-		"bot/made_him_cry.wav",
-		"bot/this_is_my_house.wav",
-		"bot/yea_baby.wav",
-		"bot/yesss.wav",
-		"bot/yesss2.wav"
-	};
-#endif
 float g_vecNull[3] = { 0.0, 0.0, 0.0 };
 
 
@@ -603,53 +562,7 @@ public Plugin myinfo = // Note: must be 'myinfo'. Compiler accepts everything bu
 	version = PLUGIN_VERSION_CORE
 };
 
-/*
-public APLRes AskPluginLoad2( Handle hPlugin, bool late, char[] szError, int error_len )
-{
-	// Sort of hacky way of checking for compatibility.
-	char szGame[16];
-	GetGameFolderName( szGame, sizeof( szGame ) );
 
-#if defined CSGO
-	if ( !StrEqual( szGame, "csgo", false ) )
-#else
-	if ( !StrEqual( szGame, "cstrike", false ) )
-#endif
-	{
-		
-		
-#if defined CSGO
-		if ( !StrEqual( szGame, "cstrike", false ) )
-#else
-		if ( !StrEqual( szGame, "csgo", false ) )
-#endif
-		{
-			// E.g, running it on HL2DM.
-			strcopy( szError, error_len, CONSOLE_PREFIX..."Non-supported game!" );
-		}
-		else
-		{
-			// Running the opposite: CSS when it's for CS:GO and vice versa.
-			FormatEx( szError, error_len, CONSOLE_PREFIX..."Running wrong version for %s! (#define CSGO)", szGame );
-		}
-		
-		
-		return APLRes_Failure;
-	}
-	
-	// NATIVES
-	CreateNative( "Timer_HasScroll", Native_HasScroll );
-	CreateNative( "Timer_GetState", Native_GetState );
-	
-	CreateNative( "Timer_GetRun", Native_GetRun );
-	CreateNative( "Timer_GetStyle", Native_GetStyle );
-	CreateNative( "Timer_GetMode", Native_GetMode );
-	
-	CreateNative( "Timer_ClientCheated", Native_ClientCheated );
-	
-	return APLRes_Success;
-}
-*/
 public void OnPluginStart()
 {
 	// FORWARDS
@@ -665,11 +578,9 @@ public void OnPluginStart()
 	//HookEvent( "player_hurt", Event_ClientHurt );
 	HookEvent( "player_death", Event_ClientDeath );
 	
-#if defined CSGO
-	HookEvent( "round_poststart", Event_RoundRestart, EventHookMode_PostNoCopy );
-#else
+
 	HookEvent( "teamplay_round_start", Event_RoundRestart, EventHookMode_PostNoCopy );
-#endif
+
 	
 	HookUserMessage( GetUserMessageId( "SayText2" ), Event_SayText2, true );
 	
@@ -763,6 +674,7 @@ public void OnPluginStart()
 	
 	
 	// MODES
+	/*
 	RegConsoleCmd( "sm_auto", Command_Mode_Auto );
 	RegConsoleCmd( "sm_autobhop", Command_Mode_Auto );
 	
@@ -775,6 +687,7 @@ public void OnPluginStart()
 	RegConsoleCmd( "sm_vel", Command_Mode_VelCap );
 	RegConsoleCmd( "sm_velcap", Command_Mode_VelCap );
 	RegConsoleCmd( "sm_vel-cap", Command_Mode_VelCap );
+	*/
 	
 	
 	// RUNS
@@ -882,10 +795,10 @@ public void OnPluginStart()
 	
 	SetConVarFlags( g_ConVar_AirAccelerate, flags );
 	
-	/*
+	
 #if defined RECORD
 	// BOTS
-	g_ConVar_BotQuota = FindConVar( "bot_quota" );
+	g_ConVar_BotQuota = FindConVar( "tf_bot_quota" );
 	
 	if ( g_ConVar_BotQuota == null )
 		SetFailState( CONSOLE_PREFIX..."Unable to find cvar handle for bot_quota!" );
@@ -906,7 +819,7 @@ public void OnPluginStart()
 		delete hCvar;
 	}
 #endif
-	*/
+	
 	
 	g_flTickRate = 1 / GetTickInterval();
 	
@@ -1052,11 +965,9 @@ public void OnMapStart()
 	
 #if defined RECORD
 	// Remove bots until we get the records.
-#if defined CSGO
-	SetConVarInt( g_ConVar_BotQuota, 1 );
-#else
+
 	SetConVarInt( g_ConVar_BotQuota, 0 );
-#endif // CSGO
+
 
 #endif // RECORD
 	
@@ -1200,7 +1111,7 @@ public void OnClientPutInServer( int client )
 	
 	g_iClientId[client] = 0;
 	
-	//SDKHook( client, SDKHook_OnTakeDamage, Event_OnTakeDamage_Client );
+	SDKHook( client, SDKHook_OnTakeDamage, Event_OnTakeDamage_Client );
 	SDKHook( client, SDKHook_WeaponDropPost, Event_WeaponDropPost ); // No more weapon dropping.
 	SDKHook( client, SDKHook_SetTransmit, Event_SetTransmit_Client ); // Has to be hooked to everybody(?)
 	
@@ -1691,6 +1602,7 @@ stock void TeleportPlayerToStart( int client )
 		{
 			LogError( CONSOLE_PREFIX..."Couldn't find a spawnpoint for player!" );
 		}
+		
 	}
 }
 
@@ -1968,14 +1880,14 @@ stock void DetermineSpawns()
 #endif
 	
 	
-	Handle hCvar_HumanTeam = FindConVar( "mp_humanteam" );
-	Handle hCvar_BotTeam = FindConVar( "bot_join_team" );
+	Handle hCvar_HumanTeam = FindConVar( "mp_humans_must_join_team" );
+	Handle hCvar_BotTeam = FindConVar( "bot_changeteams" );
 	
 	if ( hCvar_HumanTeam == null )
 		SetFailState( CONSOLE_PREFIX..."Unable to find cvar handle for mp_humanteam!" );
 	
-	if ( hCvar_BotTeam == null )
-		SetFailState( CONSOLE_PREFIX..."Unable to find cvar handle for bot_join_team!" );
+	//if ( hCvar_BotTeam == null )
+		//SetFailState( CONSOLE_PREFIX..."Unable to find cvar handle for bot_join_team!" );
 	
 	// If not enough spawns found, we allow players to go to any team.
 	if ( num_t < 8 || num_ct < 8 )
@@ -1988,8 +1900,8 @@ stock void DetermineSpawns()
 	}
 	else
 	{
-		SetConVarString( hCvar_HumanTeam, "ct", true );
-		SetConVarString( hCvar_BotTeam, "t", true );
+		SetConVarString( hCvar_HumanTeam, "any", true );
+		SetConVarString( hCvar_BotTeam, "any", true );
 		
 		g_iPreferredTeam = TFTeam_Blue;
 	}
@@ -2608,13 +2520,7 @@ stock void AssignRecordToBot( int mimic, int run, int style, int mode )
 	// " VELCAP SCRL"
 	char szStyleFix[STYLEPOSTFIX_LENGTH];
 	
-#if defined CSGO
-	GetStylePostfix( mode, szStyleFix );
-	
-	// GO only lets us change the name once a round?
-	FormatEx( szFullName, sizeof( szFullName ), "%s - %s%s", g_szRunName[NAME_LONG][run], g_szStyleName[NAME_LONG][style], szStyleFix );
-	SetClientInfo( mimic, "name", szFullName );
-#else
+
 	// We'll have to limit the player's name in order to show everything.
 	char szName[MAX_REC_NAME];
 	strcopy( szName, sizeof( szName ), g_szRecName[run][style][mode] );
@@ -2627,7 +2533,6 @@ stock void AssignRecordToBot( int mimic, int run, int style, int mode )
 	// "XXXXXXXXXXXXX [B1][RHSW VELCAP]"
 	FormatEx( szFullName, sizeof( szFullName ), "%s %s  - %s %s", g_szRunName[NAME_LONG][run], g_szStyleName[NAME_LONG][style], szStyleFix, szTime );
 	SetClientInfo( mimic, "name", szFullName );
-#endif
 	
 	// Teleport 'em to the starting position and start the countdown!
 	g_bClientMimicing[mimic] = true;
@@ -2857,3 +2762,27 @@ stock void GetReason( CheatReason reason, char[] szReason, int len, bool bShort 
 		}
 	}
 }
+public int getClass(int client)
+{
+int class = 0;
+if (IsClientInGame(client) && IsPlayerAlive(client))
+{
+
+TFClassType playerClass = TF2_GetPlayerClass(client);
+
+switch(playerClass)
+{
+case TFClass_Scout    : class = 0;
+case TFClass_Soldier  : class = 1;
+case TFClass_Pyro     : class = 2;
+case TFClass_DemoMan  : class = 3;
+case TFClass_Heavy    : class = 4;
+case TFClass_Engineer : class = 5;
+case TFClass_Sniper   : class = 6;
+case TFClass_Medic    : class = 7;
+case TFClass_Spy      : class = 8;
+}
+}
+return class;
+}
+

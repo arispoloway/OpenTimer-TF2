@@ -31,12 +31,6 @@ stock void SendFade( int target, int flags = ( 1 << 0 ), int duration, const int
 	
 	if ( hMsg != null )
 	{
-#if defined CSGO
-		PbSetInt( hMsg, "duration", duration );
-		PbSetInt( hMsg, "hold_time", 0 );
-		PbSetInt( hMsg, "flags", flags );
-		PbSetColor( hMsg, "clr", color );
-#else
 		BfWriteShort( hMsg, duration );
 		BfWriteShort( hMsg, 0 );
 		BfWriteShort( hMsg, flags );
@@ -44,7 +38,6 @@ stock void SendFade( int target, int flags = ( 1 << 0 ), int duration, const int
 		BfWriteByte( hMsg, color[1] );
 		BfWriteByte( hMsg, color[2] );
 		BfWriteByte( hMsg, color[3] );
-#endif
 		
 		EndMessage();
 	}
@@ -56,25 +49,12 @@ stock void SendColorMessage( int target, int author, const char[] szMsg )
 	
 	if ( hMsg != null )
 	{
-#if defined CSGO
-		PbSetInt( hMsg, "ent_idx", author );
-		PbSetBool( hMsg, "chat", true );
-		
-		PbSetString( hMsg, "msg_name", szMsg );
-		PbAddString( hMsg, "params", "" );
-		PbAddString( hMsg, "params", "" );
-		PbAddString( hMsg, "params", "" );
-		PbAddString( hMsg, "params", "" );
-		
-		PbSetBool( hMsg, "textallchat", false );
-#else
 		BfWriteByte( hMsg, author );
 		
 		// false for no console print. If false, no chat sound is played.
 		BfWriteByte( hMsg, true );
 		
 		BfWriteString( hMsg, szMsg );
-#endif
 
 		
 		EndMessage();

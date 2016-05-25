@@ -449,7 +449,7 @@ public Action Command_Style_AD( int client, int args )
 	return Plugin_Handled;
 }
 
-public Action Command_Mode_Auto( int client, int args )
+/*public Action Command_Mode_Auto( int client, int args )
 {
 	if ( !client ) return Plugin_Handled;
 	
@@ -507,7 +507,7 @@ public Action Command_Mode_VelCap( int client, int args )
 	SetPlayerMode( client, MODE_VELCAP );
 	
 	return Plugin_Handled;
-}
+}*/
 
 public Action Command_Practise( int client, int args )
 {
