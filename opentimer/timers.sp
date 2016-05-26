@@ -260,7 +260,7 @@ public Action Timer_DrawZoneBeams( Handle hTimer )
                     static float vecPos[3];
                     GetClientAbsOrigin( client, vecPos );
                    
-                    #define MIN_DIST_SQ     2048.0
+                    #define MIN_DIST_SQ     2048.0 * 2048.0
                    
                     if ( GetVectorDistance( vecCenter, vecPos, true ) > MIN_DIST_SQ )
                         continue;
