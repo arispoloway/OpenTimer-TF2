@@ -2517,10 +2517,26 @@ stock void CopyRecordToPlayback( int client )
 		if ( mimic )
 		{
 			AssignRecordToBot( mimic, run, style, mode );
+			/*if (mode == 1)
+			{
+			TF2_SetPlayerClass(mimic, TFClass_Soldier, true, true);
+			}
+			if (mode == 3)
+			{
+			TF2_SetPlayerClass(mimic, TFClass_DemoMan, true, true);
+			}*/
 		}
 		else
 		{
 			SetConVarInt( g_ConVar_BotQuota, GetConVarInt( g_ConVar_BotQuota ) + 1 );
+			/*if (mode == 1)
+			{
+			TF2_SetPlayerClass(mimic, TFClass_Soldier, true, true);
+			}
+			if (mode == 3)
+			{
+			TF2_SetPlayerClass(mimic, TFClass_DemoMan, true, true);
+			}*/
 		}
 		
 	}
