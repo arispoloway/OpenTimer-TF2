@@ -260,7 +260,7 @@ public Action Timer_DrawZoneBeams( Handle hTimer )
                     static float vecPos[3];
                     GetClientAbsOrigin( client, vecPos );
                    
-                    #define MIN_DIST_SQ     2048.0 * 2048.0
+                    #define MIN_DIST_SQ     2048.0
                    
                     if ( GetVectorDistance( vecCenter, vecPos, true ) > MIN_DIST_SQ )
                         continue;
@@ -275,7 +275,7 @@ public Action Timer_DrawZoneBeams( Handle hTimer )
                 }
                
                 // Only if showing all zones.
-                if ( zone == ZONE_CP ) continue;
+                //if ( zone == ZONE_CP ) continue;
                
                 // Who determines what run we are in.
                 // If we're dead, it's the guy we're spectating.

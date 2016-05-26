@@ -62,7 +62,7 @@ public Action OnPlayerRunCmd(	int client,
 		// Reset field of view in case they reloaded their gun.
 		if ( buttons & IN_RELOAD )
 		{
-			SetClientFOV( client, g_iClientFOV[client] );
+			SetClientFOV( client, 90 );
 		}
 		
 		// Rest what we do is done in running only.

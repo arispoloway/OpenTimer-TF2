@@ -525,7 +525,7 @@ float g_flPreSpeedSq = 90000.0;
 bool g_bEZHop = false;
 bool g_bIgnoreLadderStyle = true;
 #if defined RECORD
-	bool g_bSmoothPlayback = true;
+	bool g_bSmoothPlayback = false;
 #endif
 float g_flVelCap = 400.0;
 float g_flVelCapSq = 160000.0;
@@ -835,7 +835,7 @@ public void OnPluginStart()
 	g_ConVar_Scroll_AirAccelerate = CreateConVar( "timer_scroll_airaccelerate", "100", "What is the airaccelerate for scroll styles? (legit/velcap)", FCVAR_NOTIFY );
 	
 #if defined RECORD
-	g_ConVar_SmoothPlayback = CreateConVar( "timer_smoothplayback", "1", "If false, playback movement will appear more responsive but choppy and teleportation (trigger_teleports) will not be affected by ping.", FCVAR_NOTIFY, true, 0.0, true, 1.0 );
+	g_ConVar_SmoothPlayback = CreateConVar( "timer_smoothplayback", "0", "If false, playback movement will appear more responsive but choppy and teleportation (trigger_teleports) will not be affected by ping.", FCVAR_NOTIFY, true, 0.0, true, 1.0 );
 	
 	g_ConVar_Bonus_NormalOnlyRec = CreateConVar( "timer_bonus_normalonlyrec", "1", "Do we allow only normal style to be recorded in bonuses? (Prevents mass bots.)", FCVAR_NOTIFY, true, 0.0, true, 1.0 );
 	
