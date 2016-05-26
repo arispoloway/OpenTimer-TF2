@@ -5,8 +5,8 @@
 #include <sdktools>
 #include <sdkhooks>
 #include <basecomm> // To check if client is gagged.
-#include <opentimer/stocks>
-#include <opentimer/core>
+#include <include/stocks>
+#include <include/opentimer_core>
 
 //	OPTIONS: Uncomment/comment things to change the plugin to your liking! Simply adding '//' (without quotation marks) in front of the line.
 // ------------------------------------------------------------------------------------------------------------------------------------------

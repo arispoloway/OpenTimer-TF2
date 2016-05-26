@@ -108,4 +108,4 @@ stock int GetStrafeDir( float oldyaw, float newyaw )
 		&& ( newyaw > oldyaw // Is our current yaw bigger than last time? Strafing to the left.
 		|| ( oldyaw > 170.0 && newyaw < -170.0 ) ) ) // If that didn't pass, there might be a chance of 180 -> -180.
 		? STRAFE_LEFT : STRAFE_RIGHT;
-}
+} 
