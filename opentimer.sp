@@ -951,6 +951,9 @@ public void OnMapStart()
 	// Do the precaching first. See if that is causing client crashing.
 	int i;
 	
+	//FindConVar("mp_autoteambalance").SetInt(0);
+	//FindConVar("mp_teams_unbalance_limit").SetInt(0);
+	
 	PrecacheModel( BRUSH_MODEL );
 	// materials/sprites/plasma.vmt, Original
 	// materials/vgui/white.vmt
@@ -2517,26 +2520,10 @@ stock void CopyRecordToPlayback( int client )
 		if ( mimic )
 		{
 			AssignRecordToBot( mimic, run, style, mode );
-			/*if (mode == 1)
-			{
-			TF2_SetPlayerClass(mimic, TFClass_Soldier, true, true);
-			}
-			if (mode == 3)
-			{
-			TF2_SetPlayerClass(mimic, TFClass_DemoMan, true, true);
-			}*/
 		}
 		else
 		{
 			SetConVarInt( g_ConVar_BotQuota, GetConVarInt( g_ConVar_BotQuota ) + 1 );
-			/*if (mode == 1)
-			{
-			TF2_SetPlayerClass(mimic, TFClass_Soldier, true, true);
-			}
-			if (mode == 3)
-			{
-			TF2_SetPlayerClass(mimic, TFClass_DemoMan, true, true);
-			}*/
 		}
 		
 	}
@@ -2573,8 +2560,28 @@ stock void AssignRecordToBot( int mimic, int run, int style, int mode )
 	g_bClientMimicing[mimic] = true;
 	g_nClientTick[mimic] = PLAYBACK_PRE;
 	
+	
+	TF2_SetPlayerClass(mimic, ClassTypeFromMode(mode), true, true);
+	ChangeClientTeam( mimic, g_iPreferredTeam );
+	TeleportPlayerToStart(mimic);
+	TF2_SetPlayerClass(mimic, ClassTypeFromMode(mode), true, true);
+	
 	CreateTimer( 5.0, Timer_Rec_Start, g_iRec[run][style][mode] );
 }
+stock TFClassType ClassTypeFromMode(int mode){
+	switch (mode){
+		case MODE_SCOUT:return TFClass_Scout;
+		case MODE_SOLDIER:return TFClass_Soldier;
+		case MODE_PYRO:return TFClass_Pyro;
+		case MODE_DEMOMAN:return TFClass_DemoMan;
+		case MODE_HEAVY:return TFClass_Heavy;
+		case MODE_ENGINEER:return TFClass_Engineer;
+		case MODE_SNIPER:return TFClass_Sniper;
+		case MODE_MEDIC:return TFClass_Medic;
+		case MODE_SPY:return TFClass_Spy;
+	}
+}
+
 
 stock void DoRecordNotification( int client, char szName[MAX_NAME_LENGTH], int run, int style, int mode, float flNewTime, float flOldBestTime, float flPrevMapBest )
 {
