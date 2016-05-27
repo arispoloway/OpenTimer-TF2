@@ -457,6 +457,7 @@ public Action Timer_DrawBuildZoneStart( Handle hTimer, int client )
        
        
         g_nClientTick[mimic] = PLAYBACK_START;
+        
         TF2_SetPlayerClass(mimic, ClassTypeFromMode(g_iClientMode[mimic]), true, true);
        
         return Plugin_Handled;

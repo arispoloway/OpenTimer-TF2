@@ -133,7 +133,7 @@ public Action Event_ClientSpawn( Handle hEvent, const char[] szEvent, bool bDont
 	
 	CreateTimer( 0.1, Timer_ClientSpawn, GetClientUserId( client ), TIMER_FLAG_NO_MAPCHANGE );
 	
-	g_iClientMode[client] = getClass(client);
+	if(!IsFakeClient(client)) g_iClientMode[client] = getClass(client);
 }
 
 // Continued from above event.
