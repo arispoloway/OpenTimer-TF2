@@ -452,8 +452,8 @@ public Action Timer_DrawBuildZoneStart( Handle hTimer, int client )
     // GO GO GO!
     public Action Timer_Rec_Start( Handle hTimer, int mimic )
     {
-        if ( !IsClientInGame( mimic ) || !IsFakeClient( mimic ) || g_hRec[ g_iClientRun[mimic] ][ g_iClientStyle[mimic] ][ g_iClientMode[mimic] ] == null || !g_bIsLoaded[ g_iClientRun[mimic] ] )
-            return Plugin_Handled;
+        //if ( !IsClientInGame( mimic ) || !IsFakeClient( mimic ) || g_hRec[ g_iClientRun[mimic] ][ g_iClientStyle[mimic] ][ g_iClientMode[mimic] ] == null || !g_bIsLoaded[ g_iClientRun[mimic] ] )
+        //   return Plugin_Handled;
        
        
         g_nClientTick[mimic] = PLAYBACK_START;

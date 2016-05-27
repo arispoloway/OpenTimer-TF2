@@ -2568,6 +2568,7 @@ stock void AssignRecordToBot( int mimic, int run, int style, int mode )
 	
 	CreateTimer( 5.0, Timer_Rec_Start, g_iRec[run][style][mode] );
 }
+
 stock TFClassType ClassTypeFromMode(int mode){
 	switch (mode){
 		case MODE_SCOUT:return TFClass_Scout;
@@ -2693,7 +2694,7 @@ stock void DoRecordNotification( int client, char szName[MAX_NAME_LENGTH], int r
 		}
 	}
 	
-	EmitSound( clients, numClients, 0 );
+	EmitSound( clients, numClients, g_szWinningSounds[0] );
 }
 
 stock int FindEmptyMimic()
