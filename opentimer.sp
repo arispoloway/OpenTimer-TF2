@@ -2693,7 +2693,7 @@ stock void DoRecordNotification( int client, char szName[MAX_NAME_LENGTH], int r
 		}
 	}
 	
-	EmitSound( clients, numClients, g_szWinningSounds[sound] );
+	EmitSound( clients, numClients, 0 );
 }
 
 stock int FindEmptyMimic()
