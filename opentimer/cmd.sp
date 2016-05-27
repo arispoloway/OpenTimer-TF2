@@ -144,7 +144,7 @@ public Action OnPlayerRunCmd(	int client,
 		///////////////////////////
 		// Please note that this is not an accurate representation of sync. However, it is close enough.
 		// Don't calc sync and strafes for special styles.
-		if ( g_iClientStyle[client] != STYLE_W && g_iClientStyle[client] != STYLE_A_D )
+		if ( true ) // used to be if(g_iClientStyle[client] != STYLE_W && g_iClientStyle[client] != STYLE_A_D)
 		{
 			static float flClientLastSpdSq[MAXPLAYERS];
 			static float flClientPrevYaw[MAXPLAYERS];
@@ -213,58 +213,14 @@ public Action OnPlayerRunCmd(	int client,
 			
 			switch ( g_iClientStyle[client] )
 			{
-				case STYLE_SW :
+				case STYLE_AUTOBHOP :
 				{
-					if ( vel[SIDE] != 0.0 )
-						bModified = CheckFreestyle( client );
+					if (!bOnGround)
+						buttons = buttons & (~IN_JUMP);
 				}
-				case STYLE_W :
+				case STYLE_CROUCHED :
 				{
-					if ( vel[FWD] < 0.0 || vel[SIDE] != 0.0 )
-						bModified = CheckFreestyle( client );
-				}
-				case STYLE_RHSW :
-				{
-					if ( !(vel[FWD] == 0.0 && vel[SIDE] == 0.0) && (vel[FWD] == 0.0 || vel[SIDE] == 0.0) )
-					{
-						bModified = CheckStyleFails( client );
-					}
-					// Reset fails if nothing else happened.
-					else if ( g_nClientStyleFail[client] > 0 )
-					{
-						g_nClientStyleFail[client]--;
-					}
-				}
-				case STYLE_HSW :
-				{
-					if ( vel[FWD] < 0.0 )
-						bModified = CheckFreestyle( client );
-					else if ( vel[FWD] == 0.0 && vel[SIDE] != 0.0 )
-						bModified = CheckFreestyle( client );
-					// Let players fail.
-					else if ( vel[FWD] > 0.0 && vel[SIDE] == 0.0 )
-						bModified = CheckStyleFails( client );
-					// Reset fails if nothing else happened.
-					else if ( g_nClientStyleFail[client] > 0 )
-					{
-						g_nClientStyleFail[client]--;
-					}
-				}
-				case STYLE_A_D :
-				{
-					if ( vel[FWD] != 0.0 )
-						bModified = CheckFreestyle( client );
-					// Determine which button player wants to hold.
-					else if ( !g_iClientPrefButton[client] )
-					{
-						if ( vel[SIDE] < 0.0 ) g_iClientPrefButton[client] = IN_MOVELEFT;
-						else if ( vel[SIDE] > 0.0 ) g_iClientPrefButton[client] = IN_MOVERIGHT;
-					}
-					// Else, check if they are holding the opposite key!
-					else if ( g_iClientPrefButton[client] == IN_MOVELEFT && vel[SIDE] > 0.0 )
-						bModified = CheckFreestyle( client );
-					else if ( g_iClientPrefButton[client] == IN_MOVERIGHT && vel[SIDE] < 0.0 )
-						bModified = CheckFreestyle( client );
+					buttons |= IN_DUCK;
 				}
 			}
 			

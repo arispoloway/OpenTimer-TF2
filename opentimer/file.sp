@@ -1,6 +1,6 @@
 // In case we add anymore style.
 static const char g_szRunDir[NUM_RUNS][5] = { "main", "b1", "b2" };
-static const char g_szStyleDir[NUM_STYLES][5] = { "n", "sw", "w", "rhsw", "hsw", "ad" };
+static const char g_szStyleDir[NUM_STYLES][5] = { "n", "auto", "c" };
 static const char g_szModeDir[NUM_MODES][9] = { "scout", "soldier", "pyro", "demoman", "heavy", "engineer", "sniper", "medic", "spy" };
 
 stock bool ExCreateDir( const char[] szPath )

@@ -330,7 +330,7 @@ public int Handler_Style( Menu mMenu, MenuAction action, int client, int index )
 	}
 	else
 	{
-		index -= 2;
+		//index -= 2;
 		
 		if ( index < 0 || index >= NUM_STYLES ) return 0;
 		

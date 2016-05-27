@@ -99,7 +99,7 @@ stock void ShowKeyHintText( int client, int target )
 			
 			if ( g_iClientState[target] != STATE_START )
 			{
-				if ( style == STYLE_W || style == STYLE_A_D )
+				/*if ( style == STYLE_W || style == STYLE_A_D )
 				{
 					FormatEx( szText, sizeof( szText ), "Jumps: %i\n \nStyle: %s%s\nPB: %s\n%s",
 						g_nClientJumps[target],
@@ -109,7 +109,7 @@ stock void ShowKeyHintText( int client, int target )
 						( g_bClientPractising[target] ? "(Practice Mode)" : "" ) ); // Have a practice mode warning for players!
 				}
 				else
-				{
+				{*/
 					// "Strafes: XXXXXCL Sync: 100.0CL Sync: 100.0CR Sync: 100.0CJumps: XXXXC CStyle: Real HSW ScrollCPB: 00:00:00.00C(Practice Mode)"
 					FormatEx( szText, sizeof( szText ), "Strafes: %i\nL Sync: %3.1f\nR Sync: %3.1f\nJumps: %i\n \nStyle: %s%s\nPB: %s\n%s",
 						g_nClientStrafes[target],
@@ -120,7 +120,7 @@ stock void ShowKeyHintText( int client, int target )
 						szStylePostFix,
 						szTime,
 						( g_bClientPractising[target] ? "(Practice Mode)" : "" ) );
-				}
+				//}
 			}
 			else
 			{
@@ -136,7 +136,7 @@ stock void ShowKeyHintText( int client, int target )
 #if defined RECORD
 			FormatSeconds( g_flMapBestTime[run][style][mode], szTime );
 			
-			if ( style == STYLE_W || style == STYLE_A_D )
+			/*if ( style == STYLE_W || style == STYLE_A_D )
 			{
 				FormatEx( szText, sizeof( szText ), "Name: %s\nTime: %s\n \nJumps: %i \n ",
 					g_szRecName[run][style][mode],
@@ -144,13 +144,13 @@ stock void ShowKeyHintText( int client, int target )
 					g_nRecJumps[run][style][mode] );
 			}
 			else
-			{
+			{*/
 				FormatEx( szText, sizeof( szText ), "Name: %s\nTime: %s\n \nJumps: %i\nStrafes: %i",
 					g_szRecName[run][style][mode],
 					szTime,
 					g_nRecJumps[run][style][mode],
 					g_nRecStrafes[run][style][mode] );
-			}
+			//}
 
 #else
 			FormatEx( szText, sizeof( szText ), "I am a bot! :)" );

@@ -379,7 +379,7 @@ public Action Command_Style_Normal( int client, int args )
 	return Plugin_Handled;
 }
 
-public Action Command_Style_SW( int client, int args )
+public Action Command_Style_AutoBhop( int client, int args )
 {
 	if ( !client ) return Plugin_Handled;
 	
@@ -388,12 +388,12 @@ public Action Command_Style_SW( int client, int args )
 	
 	if ( ShouldReset( client ) ) TeleportPlayerToStart( client );
 	
-	SetPlayerStyle( client, STYLE_SW );
+	SetPlayerStyle( client, STYLE_AUTOBHOP );
 	
 	return Plugin_Handled;
 }
 
-public Action Command_Style_W( int client, int args )
+public Action Command_Style_Crouched( int client, int args )
 {
 	if ( !client ) return Plugin_Handled;
 	
@@ -402,113 +402,12 @@ public Action Command_Style_W( int client, int args )
 	
 	if ( ShouldReset( client ) ) TeleportPlayerToStart( client );
 	
-	SetPlayerStyle( client, STYLE_W );
+	SetPlayerStyle( client, STYLE_CROUCHED );
 
 	return Plugin_Handled;
 }
 
-public Action Command_Style_HSW( int client, int args )
-{
-	if ( !client ) return Plugin_Handled;
-	
-	if ( !IsValidCommandUser( client ) ) return Plugin_Handled;
-	
-	
-	if ( ShouldReset( client ) ) TeleportPlayerToStart( client );
-	
-	SetPlayerStyle( client, STYLE_HSW );
 
-	return Plugin_Handled;
-}
-
-public Action Command_Style_RealHSW( int client, int args )
-{
-	if ( !client ) return Plugin_Handled;
-	
-	if ( !IsValidCommandUser( client ) ) return Plugin_Handled;
-	
-	
-	if ( ShouldReset( client ) ) TeleportPlayerToStart( client );
-	
-	SetPlayerStyle( client, STYLE_RHSW );
-
-	return Plugin_Handled;
-}
-
-public Action Command_Style_AD( int client, int args )
-{
-	if ( !client ) return Plugin_Handled;
-	
-	if ( !IsValidCommandUser( client ) ) return Plugin_Handled;
-	
-	
-	if ( ShouldReset( client ) ) TeleportPlayerToStart( client );
-	
-	SetPlayerStyle( client, STYLE_A_D );
-	
-	return Plugin_Handled;
-}
-
-/*public Action Command_Mode_Auto( int client, int args )
-{
-	if ( !client ) return Plugin_Handled;
-	
-	if ( !IsAllowedMode( MODE_AUTO ) )
-	{
-		PRINTCHAT( client, CHAT_PREFIX..."This mode is not allowed!" );
-		return Plugin_Handled;
-	}
-	
-	if ( !IsValidCommandUser( client ) ) return Plugin_Handled;
-	
-	
-	if ( ShouldReset( client ) ) TeleportPlayerToStart( client );
-	
-	SetPlayerMode( client, MODE_AUTO );
-	
-	return Plugin_Handled;
-}
-
-
-public Action Command_Mode_Scroll( int client, int args )
-{
-	if ( !client ) return Plugin_Handled;
-	
-	if ( !IsAllowedMode( MODE_SCROLL ) )
-	{
-		PRINTCHAT( client, CHAT_PREFIX..."This mode is not allowed!" );
-		return Plugin_Handled;
-	}
-	
-	if ( !IsValidCommandUser( client ) ) return Plugin_Handled;
-	
-	
-	if ( ShouldReset( client ) ) TeleportPlayerToStart( client );
-	
-	SetPlayerMode( client, MODE_SCROLL );
-	
-	return Plugin_Handled;
-}
-
-public Action Command_Mode_VelCap( int client, int args )
-{
-	if ( !client ) return Plugin_Handled;
-	
-	if ( !IsAllowedMode( MODE_VELCAP ) )
-	{
-		PRINTCHAT( client, CHAT_PREFIX..."This mode is not allowed!" );
-		return Plugin_Handled;
-	}
-	
-	if ( !IsValidCommandUser( client ) ) return Plugin_Handled;
-	
-	
-	if ( ShouldReset( client ) ) TeleportPlayerToStart( client );
-	
-	SetPlayerMode( client, MODE_VELCAP );
-	
-	return Plugin_Handled;
-}*/
 
 public Action Command_Practise( int client, int args )
 {

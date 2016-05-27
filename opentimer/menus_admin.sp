@@ -221,18 +221,11 @@ public Action Command_Admin_ZonePermissions( int client, int args )
 	
 	if ( zone != ZONE_BLOCKS )
 	{
-		mMenu.AddItem( "12", ( flags & ZONE_ALLOW_AUTO )	? "Allow Auto: ON" : "Allow Auto: OFF" );
-		mMenu.AddItem( "9", ( flags & ZONE_ALLOW_SCROLL )	? "Allow Scroll: ON" : "Allow Scroll: OFF" );
-		mMenu.AddItem( "10", ( flags & ZONE_ALLOW_VELCAP )	? "Allow VelCap: ON" : "Allow VelCap: OFF" );
 		mMenu.AddItem( "3", ( flags & ZONE_ALLOW_NORMAL )	? "Allow Normal: ON" : "Allow Normal: OFF" );
 	}
 	
-	
-	mMenu.AddItem( "4", ( flags & ZONE_ALLOW_SW )			? "Allow Sideways: ON" : "Allow Sideways: OFF" );
-	mMenu.AddItem( "5", ( flags & ZONE_ALLOW_W )			? "Allow W-Only: ON" : "Allow W-Only: OFF" );
-	mMenu.AddItem( "6", ( flags & ZONE_ALLOW_RHSW )			? "Allow Real-HSW: ON" : "Allow Real-HSW: OFF" );
-	mMenu.AddItem( "7", ( flags & ZONE_ALLOW_HSW )			? "Allow HSW: ON" : "Allow HSW: OFF" );
-	mMenu.AddItem( "8", ( flags & ZONE_ALLOW_A_D )			? "Allow A/D-Only: ON" : "Allow A/D-Only: OFF" );
+	mMenu.AddItem( "4", ( flags & ZONE_ALLOW_AUTOBHOP )		? "Allow AutoBhop: ON" : "Allow AutoBhop: OFF" );
+	mMenu.AddItem( "5", ( flags & ZONE_ALLOW_CROUCHED )		? "Allow Crouched: ON" : "Allow Crouched: OFF" );
 	
 	mMenu.AddItem( "11", ( flags & ZONE_VEL_NOSPEEDCAP )	? "VelCap Speedcap: OFF" : "VelCap Speedcap: ON", ( zone == ZONE_FREESTYLES ) ? 0 : ITEMDRAW_DISABLED );
 	

@@ -274,18 +274,12 @@ enum ZoneData
 #define ZONE_ALLOW_BONUS1	( 1 << 1 )
 #define ZONE_ALLOW_BONUS2	( 1 << 2 )
 #define ZONE_ALLOW_NORMAL	( 1 << 3 )
-#define ZONE_ALLOW_SW		( 1 << 4 )
-#define ZONE_ALLOW_W		( 1 << 5 )
-#define ZONE_ALLOW_RHSW		( 1 << 6 )
-#define ZONE_ALLOW_HSW		( 1 << 7 )
-#define ZONE_ALLOW_A_D		( 1 << 8 )
-#define ZONE_ALLOW_SCROLL	( 1 << 9 )
-#define ZONE_ALLOW_VELCAP	( 1 << 10 )
+#define ZONE_ALLOW_AUTOBHOP ( 1 << 4 )
+#define ZONE_ALLOW_CROUCHED ( 1 << 5 )
 #define ZONE_VEL_NOSPEEDCAP	( 1 << 11 ) // Allow velcap style to not cap speed.
-#define ZONE_ALLOW_AUTO		( 1 << 12 )
 
 #define DEF_BLOCK_FLAGS ( ZONE_ALLOW_MAIN | ZONE_ALLOW_BONUS1 | ZONE_ALLOW_BONUS2 ) // Don't care about what run client has.
-#define DEF_FREESTYLE_FLAGS ( ZONE_ALLOW_MAIN | ZONE_ALLOW_BONUS1 | ZONE_ALLOW_BONUS2 | ZONE_ALLOW_SW | ZONE_ALLOW_W | ZONE_ALLOW_RHSW | ZONE_ALLOW_HSW | ZONE_ALLOW_VELCAP | ZONE_ALLOW_A_D | ZONE_ALLOW_SCROLL | ZONE_ALLOW_AUTO )
+#define DEF_FREESTYLE_FLAGS ( ZONE_ALLOW_MAIN | ZONE_ALLOW_BONUS1 | ZONE_ALLOW_BONUS2 | ZONE_ALLOW_AUTOBHOP | ZONE_ALLOW_CROUCHED )
 
 enum BeamData
 {
@@ -469,10 +463,10 @@ char g_szRunName[NUM_NAMES][NUM_RUNS][9] =
 	{ "Main", "Bonus 1", "Bonus 2" },
 	{ "M", "B1", "B2" }
 };
-char g_szStyleName[NUM_NAMES][NUM_STYLES][9] =
+char g_szStyleName[NUM_NAMES][NUM_STYLES][16] =
 {
-	{ "Normal", "Sideways", "W-Only", "Surf HSW", "Bhop HSW", "A/D-Only" },
-	{ "N", "SW", "W", "SHSW", "BHSW", "A/D" }
+	{ "Normal", "Auto Bhop", "Always Crouched"},
+	{ "N", "AUTO", "C"}
 };
 // First one is always the normal ending sound!
 	char g_szWinningSounds[][] =
@@ -503,13 +497,8 @@ ConVar g_ConVar_EZHop;
 
 ConVar g_ConVar_AC_AdminsOnlyLog;
 
-ConVar g_ConVar_Allow_SW;
-ConVar g_ConVar_Allow_W;
-ConVar g_ConVar_Allow_HSW;
-ConVar g_ConVar_Allow_RHSW;
-ConVar g_ConVar_Allow_AD;
-ConVar g_ConVar_Allow_Mode_Auto;
-ConVar g_ConVar_Allow_Mode_Scroll;
+ConVar g_ConVar_Allow_AutoBhop;
+ConVar g_ConVar_Allow_Crouched;
 ConVar g_ConVar_Allow_Mode_VelCap;
 
 ConVar g_ConVar_Def_Mode;
@@ -652,26 +641,11 @@ public void OnPluginStart()
 	RegConsoleCmd( "sm_normal", Command_Style_Normal );
 	RegConsoleCmd( "sm_n", Command_Style_Normal );
 	
-	RegConsoleCmd( "sm_sideways", Command_Style_SW );
-	RegConsoleCmd( "sm_sw", Command_Style_SW );
+	RegConsoleCmd( "sm_crouched", Command_Style_Crouched );
 	
-	RegConsoleCmd( "sm_w", Command_Style_W );
-	RegConsoleCmd( "sm_w-only", Command_Style_W );
-	
-	RegConsoleCmd( "sm_rhsw", Command_Style_RealHSW );
-	RegConsoleCmd( "sm_realhsw", Command_Style_RealHSW );
-	
-	RegConsoleCmd( "sm_hsw", Command_Style_HSW );
-	RegConsoleCmd( "sm_halfsideways", Command_Style_HSW );
-	RegConsoleCmd( "sm_half-sideways", Command_Style_HSW );
-	
-	RegConsoleCmd( "sm_a", Command_Style_AD );
-	RegConsoleCmd( "sm_a-only", Command_Style_AD );
-	RegConsoleCmd( "sm_d", Command_Style_AD );
-	RegConsoleCmd( "sm_d-only", Command_Style_AD );
-	RegConsoleCmd( "sm_ad", Command_Style_AD );
-	RegConsoleCmd( "sm_a/d", Command_Style_AD );
-	
+	RegConsoleCmd( "sm_auto", Command_Style_AutoBhop );
+	RegConsoleCmd( "sm_autobhop", Command_Style_AutoBhop );
+	RegConsoleCmd( "sm_bhop", Command_Style_AutoBhop );
 	
 	// MODES
 	/*
@@ -850,11 +824,8 @@ public void OnPluginStart()
 	
 	// STYLE CONVARS
 	//g_ConVar_Def_Style = CreateConVar( "timer_def_style", "0", "What is our default style?", _, true, 0.0, true, 1.0 );
-	g_ConVar_Allow_SW = CreateConVar( "timer_allow_sw", "1", "Is Sideways-style allowed?", FCVAR_NOTIFY, true, 0.0, true, 1.0 );
-	g_ConVar_Allow_W = CreateConVar( "timer_allow_w", "1", "Is W-Only-style allowed?", FCVAR_NOTIFY, true, 0.0, true, 1.0 );
-	g_ConVar_Allow_HSW = CreateConVar( "timer_allow_hsw", "1", "Is Half-Sideways-style allowed?", FCVAR_NOTIFY, true, 0.0, true, 1.0 );
-	g_ConVar_Allow_RHSW = CreateConVar( "timer_allow_rhsw", "1", "Is Real Half-Sideways-style allowed?", FCVAR_NOTIFY, true, 0.0, true, 1.0 );
-	g_ConVar_Allow_AD = CreateConVar( "timer_allow_ad", "1", "Is A/D-Only-style allowed?", FCVAR_NOTIFY, true, 0.0, true, 1.0 );
+	g_ConVar_Allow_AutoBhop = CreateConVar( "timer_allow_autobhop", "1", "Is Sideways-style allowed?", FCVAR_NOTIFY, true, 0.0, true, 1.0 );
+	g_ConVar_Allow_Crouched = CreateConVar( "timer_allow_crouched", "1", "Is W-Only-style allowed?", FCVAR_NOTIFY, true, 0.0, true, 1.0 );
 	
 	g_ConVar_Def_Mode = CreateConVar( "timer_def_mode", "0", "What mode is the default one? 0 = Autobhop, 1 = Scroll, 2 = Scroll + VelCap", _, true, 0.0, true, 2.0 );
 	//g_ConVar_Allow_Mode_Auto = CreateConVar( "timer_allow_mode_auto", "1", "Is Autobhop-mode allowed?", FCVAR_NOTIFY, true, 0.0, true, 1.0 );
@@ -1529,11 +1500,8 @@ stock bool IsAllowedZone( int client, int flags )
 	switch ( g_iClientStyle[client] )
 	{
 		case STYLE_NORMAL : if ( !(flags & ZONE_ALLOW_NORMAL) ) return false;
-		case STYLE_SW : if ( !(flags & ZONE_ALLOW_SW) ) return false;
-		case STYLE_W : if ( !(flags & ZONE_ALLOW_W) ) return false;
-		case STYLE_RHSW : if ( !(flags & ZONE_ALLOW_RHSW) ) return false;
-		case STYLE_HSW : if ( !(flags & ZONE_ALLOW_HSW) ) return false;
-		case STYLE_A_D : if ( !(flags & ZONE_ALLOW_A_D) ) return false;
+		case STYLE_AUTOBHOP : if ( !(flags & ZONE_ALLOW_AUTOBHOP) ) return false;
+		case STYLE_CROUCHED : if ( !(flags & ZONE_ALLOW_CROUCHED) ) return false;
 	}
 	/*
 	if ( g_iClientMode[client] == MODE_SCROLL && !(flags & ZONE_ALLOW_SCROLL) )
@@ -1770,11 +1738,8 @@ stock bool IsAllowedStyle( int style )
 	switch( style )
 	{
 		case STYLE_NORMAL : return true;
-		case STYLE_HSW : return GetConVarBool( g_ConVar_Allow_HSW );
-		case STYLE_RHSW : return GetConVarBool( g_ConVar_Allow_RHSW );
-		case STYLE_SW : return GetConVarBool( g_ConVar_Allow_SW );
-		case STYLE_W : return GetConVarBool( g_ConVar_Allow_W );
-		case STYLE_A_D : return GetConVarBool( g_ConVar_Allow_AD );
+		case STYLE_AUTOBHOP : return GetConVarBool( g_ConVar_Allow_AutoBhop );
+		case STYLE_CROUCHED : return GetConVarBool( g_ConVar_Allow_Crouched );
 	}
 	
 	return false;
@@ -2335,30 +2300,15 @@ stock void ParseRecordString( char[] szRec, int &type, int &num )
 		type = RECORDTYPE_STYLE;
 		num = STYLE_NORMAL;
 	}
-	else if ( StrEqual( szRec, "sw", false ) || StrEqual( szRec, "sideways", false ) || StrEqual( szRec, "side", false ) )
+	else if ( StrEqual( szRec, "auto", false ) || StrEqual( szRec, "bhop", false ) || StrEqual( szRec, "autobhop", false ) )
 	{
 		type = RECORDTYPE_STYLE;
-		num = STYLE_SW;
+		num = STYLE_AUTOBHOP;
 	}
-	else if ( StrEqual( szRec, "w-only", false ) || StrEqual( szRec, "w", false ) || StrEqual( szRec, "wonly", false ) )
+	else if ( StrEqual( szRec, "cr", false ) || StrEqual( szRec, "crouched", false ) )
 	{
 		type = RECORDTYPE_STYLE;
-		num = STYLE_W;
-	}
-	else if ( StrEqual( szRec, "ad", false ) || StrEqual( szRec, "a-only", false ) || StrEqual( szRec, "d-only", false ) || StrEqual( szRec, "a", false ) || StrEqual( szRec, "d", false ) )
-	{
-		type = RECORDTYPE_STYLE;
-		num = STYLE_A_D;
-	}
-	else if ( StrEqual( szRec, "hsw", false ) || StrEqual( szRec, "halfsideways", false ) )
-	{
-		type = RECORDTYPE_STYLE;
-		num = STYLE_HSW;
-	}
-	else if ( StrEqual( szRec, "rhsw", false ) || StrEqual( szRec, "realhsw", false ) )
-	{
-		type = RECORDTYPE_STYLE;
-		num = STYLE_RHSW;
+		num = STYLE_CROUCHED;
 	}
 	
 	// MODES
