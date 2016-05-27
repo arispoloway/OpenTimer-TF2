@@ -275,7 +275,7 @@ public Action Timer_DrawZoneBeams( Handle hTimer )
                 }
                
                 // Only if showing all zones.
-                if ( zone == ZONE_CP ) continue;
+                //if ( zone == ZONE_CP ) continue;
                
                 // Who determines what run we are in.
                 // If we're dead, it's the guy we're spectating.
@@ -457,6 +457,7 @@ public Action Timer_DrawBuildZoneStart( Handle hTimer, int client )
        
        
         g_nClientTick[mimic] = PLAYBACK_START;
+        TF2_SetPlayerClass(mimic, ClassTypeFromMode(g_iClientMode[mimic]), true, true);
        
         return Plugin_Handled;
     }

@@ -525,7 +525,7 @@ float g_flPreSpeedSq = 90000.0;
 bool g_bEZHop = false;
 bool g_bIgnoreLadderStyle = true;
 #if defined RECORD
-	bool g_bSmoothPlayback = true;
+	bool g_bSmoothPlayback = false;
 #endif
 float g_flVelCap = 400.0;
 float g_flVelCapSq = 160000.0;
@@ -835,7 +835,7 @@ public void OnPluginStart()
 	g_ConVar_Scroll_AirAccelerate = CreateConVar( "timer_scroll_airaccelerate", "100", "What is the airaccelerate for scroll styles? (legit/velcap)", FCVAR_NOTIFY );
 	
 #if defined RECORD
-	g_ConVar_SmoothPlayback = CreateConVar( "timer_smoothplayback", "1", "If false, playback movement will appear more responsive but choppy and teleportation (trigger_teleports) will not be affected by ping.", FCVAR_NOTIFY, true, 0.0, true, 1.0 );
+	g_ConVar_SmoothPlayback = CreateConVar( "timer_smoothplayback", "0", "If false, playback movement will appear more responsive but choppy and teleportation (trigger_teleports) will not be affected by ping.", FCVAR_NOTIFY, true, 0.0, true, 1.0 );
 	
 	g_ConVar_Bonus_NormalOnlyRec = CreateConVar( "timer_bonus_normalonlyrec", "1", "Do we allow only normal style to be recorded in bonuses? (Prevents mass bots.)", FCVAR_NOTIFY, true, 0.0, true, 1.0 );
 	
@@ -950,6 +950,9 @@ public void OnMapStart()
 {
 	// Do the precaching first. See if that is causing client crashing.
 	int i;
+	
+	//FindConVar("mp_autoteambalance").SetInt(0);
+	//FindConVar("mp_teams_unbalance_limit").SetInt(0);
 	
 	PrecacheModel( BRUSH_MODEL );
 	// materials/sprites/plasma.vmt, Original
@@ -2557,8 +2560,28 @@ stock void AssignRecordToBot( int mimic, int run, int style, int mode )
 	g_bClientMimicing[mimic] = true;
 	g_nClientTick[mimic] = PLAYBACK_PRE;
 	
+	
+	TF2_SetPlayerClass(mimic, ClassTypeFromMode(mode), true, true);
+	ChangeClientTeam( mimic, g_iPreferredTeam );
+	TeleportPlayerToStart(mimic);
+	TF2_SetPlayerClass(mimic, ClassTypeFromMode(mode), true, true);
+	
 	CreateTimer( 5.0, Timer_Rec_Start, g_iRec[run][style][mode] );
 }
+stock TFClassType ClassTypeFromMode(int mode){
+	switch (mode){
+		case MODE_SCOUT:return TFClass_Scout;
+		case MODE_SOLDIER:return TFClass_Soldier;
+		case MODE_PYRO:return TFClass_Pyro;
+		case MODE_DEMOMAN:return TFClass_DemoMan;
+		case MODE_HEAVY:return TFClass_Heavy;
+		case MODE_ENGINEER:return TFClass_Engineer;
+		case MODE_SNIPER:return TFClass_Sniper;
+		case MODE_MEDIC:return TFClass_Medic;
+		case MODE_SPY:return TFClass_Spy;
+	}
+}
+
 
 stock void DoRecordNotification( int client, char szName[MAX_NAME_LENGTH], int run, int style, int mode, float flNewTime, float flOldBestTime, float flPrevMapBest )
 {

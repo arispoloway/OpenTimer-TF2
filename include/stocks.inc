@@ -3,7 +3,6 @@
 #endif
 #define _opentimer_stocks_included
 
-
 stock float GetEntitySpeed( int ent )
 {
 	float vecVel[3];
