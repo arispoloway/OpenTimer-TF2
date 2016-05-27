@@ -2475,7 +2475,7 @@ stock void CopyRecordToPlayback( int client )
 {
 	int run = g_iClientRun[client];
 	int style = g_iClientStyle[client];
-	int mode = g_iClientMode[client];
+	int mode = getClass(client);
 	
 	// If that bot already exists, we must stop it from mimicing.
 	g_bClientMimicing[ g_iRec[run][style][mode] ] = false;
