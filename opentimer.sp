@@ -826,7 +826,7 @@ public void OnPluginStart()
 	
 	g_ConVar_EZHop = CreateConVar( "timer_ezhop", "1", "Is ezhop enabled?", FCVAR_NOTIFY, true, 0.0, true, 1.0 );
 	
-	g_ConVar_PreSpeed = CreateConVar( "timer_prespeed", "278", "What is our prespeed limit? 0 = No limit.", FCVAR_NOTIFY, true, 0.0, true, 3500.0 );
+	g_ConVar_PreSpeed = CreateConVar( "timer_prespeed", "400", "What is our prespeed limit? 0 = No limit.", FCVAR_NOTIFY, true, 0.0, true, 3500.0 );
 	
 	g_ConVar_LadderStyle = CreateConVar( "timer_ladder_ignorestyle", "1", "Do we allow ladders to ignore player's style?", FCVAR_NOTIFY, true, 0.0, true, 1.0 );
 	
