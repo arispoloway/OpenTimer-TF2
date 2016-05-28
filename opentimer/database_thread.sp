@@ -672,7 +672,7 @@ public void Threaded_Init_Records( Handle hOwner, Handle hQuery, const char[] sz
 	int		iStyle;
 	int		iMode;
 #if defined RECORD
-	bool	bNormalOnly = GetConVarBool( g_ConVar_Bonus_NormalOnlyRec );
+	//bool	bNormalOnly = GetConVarBool( g_ConVar_Bonus_NormalOnlyRec );
 	int		id;
 	int		num_recs;
 	

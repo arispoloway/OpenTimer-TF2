@@ -33,7 +33,7 @@ public Action Timer_Connected( Handle hTimer, int client )
 public Action Timer_SpawnPlayer( Handle hTimer, int client )
 {
     // Force client to spawn in case you cannot join through the menu.
-    if ( (client = GetClientOfUserId( client )) && GetClientTeam( client ) < TFTeam_Spectator )
+    if ( (client = GetClientOfUserId( client )) &&  view_as<int>(GetClientTeam( client )) <  view_as<int>(TFTeam_Spectator))
     {
         SpawnPlayer( client );
     }
@@ -185,7 +185,7 @@ public Action Timer_ClientJoinTeam( Handle hTimer, int userid )
     int client;
     if ( !(client = GetClientOfUserId( userid )) ) return;
    
-    if ( GetClientTeam( client) > TFTeam_Spectator && !IsPlayerAlive( client ) )
+    if (  view_as<int>(GetClientTeam( client)) >  view_as<int>(TFTeam_Spectator) && !IsPlayerAlive( client ) )
     {
         TF2_RespawnPlayer( client );
     }
@@ -457,10 +457,21 @@ public Action Timer_DrawBuildZoneStart( Handle hTimer, int client )
        
        
         g_nClientTick[mimic] = PLAYBACK_START;
-        
+		
+		SetBotName(mimic);
+		
         TF2_SetPlayerClass(mimic, ClassTypeFromMode(g_iClientMode[mimic]), true, true);
-       
-        return Plugin_Handled;
+		if (TF2_GetPlayerClass(mimic) == TFClass_Soldier)
+		{
+			int weapon = GetPlayerWeaponSlot(mimic, TFWeaponSlot_Primary);
+			SetEntPropEnt(mimic, Prop_Send, "m_hActiveWeapon", weapon);
+		}		
+		if (TF2_GetPlayerClass(mimic) == TFClass_DemoMan)
+		{
+			int weapon = GetPlayerWeaponSlot(mimic, TFWeaponSlot_Secondary);
+			SetEntPropEnt(mimic, Prop_Send, "m_hActiveWeapon", weapon);
+		}
+		return Plugin_Handled;
     }
  
     // TELEPORT TO START AND WAIT!
@@ -473,19 +484,19 @@ public Action Timer_DrawBuildZoneStart( Handle hTimer, int client )
         g_nClientTick[mimic] = PLAYBACK_PRE;
        
         CreateTimer( 2.0, Timer_Rec_Start, mimic, TIMER_FLAG_NO_MAPCHANGE );
-		
-		if (TF2_GetPlayerClass(mimic) == TFClass_Soldier)
+        
+        if (TF2_GetPlayerClass(mimic) == TFClass_Soldier)
 		{
-		int weapon = GetPlayerWeaponSlot(mimic, TFWeaponSlot_Primary);
-		SetEntPropEnt(mimic, Prop_Send, "m_hActiveWeapon", weapon);
-		}
+			int weapon = GetPlayerWeaponSlot(mimic, TFWeaponSlot_Primary);
+			SetEntPropEnt(mimic, Prop_Send, "m_hActiveWeapon", weapon);
+		}		
 		if (TF2_GetPlayerClass(mimic) == TFClass_DemoMan)
 		{
-		int weapon = GetPlayerWeaponSlot(mimic, TFWeaponSlot_Secondary);
-		SetEntPropEnt(mimic, Prop_Send, "m_hActiveWeapon", weapon);
+			int weapon = GetPlayerWeaponSlot(mimic, TFWeaponSlot_Secondary);
+			SetEntPropEnt(mimic, Prop_Send, "m_hActiveWeapon", weapon);
 		}
 		
-        return Plugin_Handled;
+		return Plugin_Handled;
     }
  
     /*public Action Timer_Rec_Stop( Handle hTimer, int mimic )

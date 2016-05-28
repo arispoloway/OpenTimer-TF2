@@ -437,7 +437,7 @@ float g_vecSpawnPos[NUM_RUNS][3];
 float g_vecSpawnAngles[NUM_RUNS][3];
 float g_flMapBestTime[NUM_RUNS][NUM_STYLES][NUM_MODES];
 int g_iBeam;
-int g_iPreferredTeam = TFTeam_Blue;
+TFTeam g_iPreferredTeam = TFTeam_Blue;
 
 
 // Voting stuff
@@ -487,7 +487,6 @@ ConVar g_ConVar_Def_AirAccelerate;
 ConVar g_ConVar_Scroll_AirAccelerate;
 static ConVar g_ConVar_PreSpeed;
 ConVar g_ConVar_LadderStyle;
-ConVar g_ConVar_EZHop;
 #if defined RECORD
 	ConVar g_ConVar_SmoothPlayback;
 	ConVar g_ConVar_Bonus_NormalOnlyRec;
@@ -499,7 +498,6 @@ ConVar g_ConVar_AC_AdminsOnlyLog;
 
 ConVar g_ConVar_Allow_AutoBhop;
 ConVar g_ConVar_Allow_Crouched;
-ConVar g_ConVar_Allow_Mode_VelCap;
 
 ConVar g_ConVar_Def_Mode;
 
@@ -511,13 +509,12 @@ float g_flDefAirAccelerate = 10.0;
 float g_flBhopAirAccelerate = 100.0;
 float g_flPreSpeed = 278.0;
 float g_flPreSpeedSq = 90000.0;
-bool g_bEZHop = false;
 bool g_bIgnoreLadderStyle = true;
 #if defined RECORD
 	bool g_bSmoothPlayback = false;
 #endif
-float g_flVelCap = 400.0;
-float g_flVelCapSq = 160000.0;
+//float g_flVelCap = 400.0;
+//float g_flVelCapSq = 160000.0;
 
 // Forwards
 Handle g_hForward_Timer_OnStateChanged;
@@ -797,9 +794,6 @@ public void OnPluginStart()
 	
 	g_flTickRate = 1 / GetTickInterval();
 	
-	
-	g_ConVar_EZHop = CreateConVar( "timer_ezhop", "1", "Is ezhop enabled?", FCVAR_NOTIFY, true, 0.0, true, 1.0 );
-	
 	g_ConVar_PreSpeed = CreateConVar( "timer_prespeed", "400", "What is our prespeed limit? 0 = No limit.", FCVAR_NOTIFY, true, 0.0, true, 3500.0 );
 	
 	g_ConVar_LadderStyle = CreateConVar( "timer_ladder_ignorestyle", "1", "Do we allow ladders to ignore player's style?", FCVAR_NOTIFY, true, 0.0, true, 1.0 );
@@ -836,7 +830,6 @@ public void OnPluginStart()
 	g_ConVar_LegitFPS = CreateConVar( "timer_fps_style", "1", "How do we determine player's FPS in scroll modes? 0 = No limit. 1 = FPS can be more or equal to server's tickrate. 2 = FPS must be 300.", FCVAR_NOTIFY, true, 0.0, true, 2.0 );
 	
 	// CONVAR HOOKS
-	HookConVarChange( g_ConVar_EZHop, Event_ConVar_EZHop );
 	
 	HookConVarChange( g_ConVar_PreSpeed, Event_ConVar_PreSpeed );
 	
@@ -860,7 +853,6 @@ public void OnPluginStart()
 public void OnConfigsExecuted()
 {
 	// Solves the pesky convar reset on map changes.
-	g_bEZHop = GetConVarBool( g_ConVar_EZHop );
 	
 	g_flPreSpeed = GetConVarFloat( g_ConVar_PreSpeed );
 	g_flPreSpeedSq = g_flPreSpeed * g_flPreSpeed;
@@ -871,16 +863,11 @@ public void OnConfigsExecuted()
 	g_bSmoothPlayback = GetConVarBool( g_ConVar_SmoothPlayback );
 #endif
 	
-	g_flVelCap = GetConVarFloat( g_ConVar_VelCap );
-	g_flVelCapSq = g_flVelCap * g_flVelCap;
+	//g_flVelCap = GetConVarFloat( g_ConVar_VelCap );
+	//g_flVelCapSq = g_flVelCap * g_flVelCap;
 	
 	g_flDefAirAccelerate = GetConVarFloat( g_ConVar_Def_AirAccelerate );
 	g_flBhopAirAccelerate = GetConVarFloat( g_ConVar_Scroll_AirAccelerate );
-}
-
-public void Event_ConVar_EZHop( Handle hConVar, const char[] szOldValue, const char[] szNewValue )
-{
-	g_bEZHop = StringToInt( szNewValue ) ? true : false;
 }
 
 public void Event_ConVar_PreSpeed( Handle hConVar, const char[] szOldValue, const char[] szNewValue )
@@ -903,8 +890,8 @@ public void Event_ConVar_LadderStyle( Handle hConVar, const char[] szOldValue, c
 
 public void Event_ConVar_VelCap( Handle hConVar, const char[] szOldValue, const char[] szNewValue )
 {
-	g_flVelCap = StringToFloat( szNewValue );
-	g_flVelCapSq = g_flVelCap * g_flVelCap;
+	//g_flVelCap = StringToFloat( szNewValue );
+	//g_flVelCapSq = g_flVelCap * g_flVelCap;
 }
 
 public void Event_ConVar_Def_AirAccelerate( Handle hConVar, const char[] szOldValue, const char[] szNewValue )
@@ -2478,7 +2465,27 @@ stock void CopyRecordToPlayback( int client )
 		
 	}
 }
-
+stock void SetBotName(int mimic){
+	char szFullName[MAX_NAME_LENGTH];
+	
+	// " VELCAP SCRL"
+	char szStyleFix[STYLEPOSTFIX_LENGTH];
+		
+	int run = g_iClientRun[mimic];
+	int style = g_iClientStyle[mimic];
+	int mode = g_iClientMode[mimic];
+		
+	char szName[MAX_REC_NAME];
+	strcopy( szName, sizeof( szName ), g_szRecName[run][style][mode] );
+	
+	char szTime[TIME_SIZE_DEF];
+	FormatSeconds( g_flMapBestTime[run][style][mode], szTime );
+	
+	GetStylePostfix( mode, szStyleFix, true );
+		
+	FormatEx( szFullName, sizeof( szFullName ), "%s %s  - %s %s", g_szRunName[NAME_LONG][run], g_szStyleName[NAME_LONG][style], szStyleFix, szTime );
+	SetClientInfo( mimic, "name", szFullName );
+}
 stock void AssignRecordToBot( int mimic, int run, int style, int mode )
 {
 	g_iClientRun[mimic] = run;
@@ -2487,24 +2494,7 @@ stock void AssignRecordToBot( int mimic, int run, int style, int mode )
 	
 	g_iRec[run][style][mode] = mimic;
 	
-	char szFullName[MAX_NAME_LENGTH];
-	
-	// " VELCAP SCRL"
-	char szStyleFix[STYLEPOSTFIX_LENGTH];
-	
-
-	// We'll have to limit the player's name in order to show everything.
-	char szName[MAX_REC_NAME];
-	strcopy( szName, sizeof( szName ), g_szRecName[run][style][mode] );
-	
-	char szTime[TIME_SIZE_DEF];
-	FormatSeconds( g_flMapBestTime[run][style][mode], szTime );
-	
-	GetStylePostfix( mode, szStyleFix, true );
-	
-	// "XXXXXXXXXXXXX [B1][RHSW VELCAP]"
-	FormatEx( szFullName, sizeof( szFullName ), "%s %s  - %s %s", g_szRunName[NAME_LONG][run], g_szStyleName[NAME_LONG][style], szStyleFix, szTime );
-	SetClientInfo( mimic, "name", szFullName );
+	SetBotName(mimic);
 	
 	// Teleport 'em to the starting position and start the countdown!
 	g_bClientMimicing[mimic] = true;
@@ -2512,11 +2502,11 @@ stock void AssignRecordToBot( int mimic, int run, int style, int mode )
 	
 	
 	TF2_SetPlayerClass(mimic, ClassTypeFromMode(mode), true, true);
-	ChangeClientTeam( mimic, g_iPreferredTeam );
+	ChangeClientTeam( mimic,  view_as<int>(g_iPreferredTeam) );
 	TeleportPlayerToStart(mimic);
 	TF2_SetPlayerClass(mimic, ClassTypeFromMode(mode), true, true);
 	
-	CreateTimer( 5.0, Timer_Rec_Start, g_iRec[run][style][mode] );
+	CreateTimer( 2.0, Timer_Rec_Start, g_iRec[run][style][mode] );
 }
 
 stock TFClassType ClassTypeFromMode(int mode){
@@ -2531,6 +2521,7 @@ stock TFClassType ClassTypeFromMode(int mode){
 		case MODE_MEDIC:return TFClass_Medic;
 		case MODE_SPY:return TFClass_Spy;
 	}
+	return TFClass_Soldier;
 }
 
 
@@ -2610,7 +2601,7 @@ stock void DoRecordNotification( int client, char szName[MAX_NAME_LENGTH], int r
 			szFormTime );
 	}
 	
-	// Play sound.
+	/*
 	int sound;
 	
 	if ( bIsBest )
@@ -2620,9 +2611,9 @@ stock void DoRecordNotification( int client, char szName[MAX_NAME_LENGTH], int r
 	}
 	else
 	{
-		// Beep!
+		/ Beep!
 		sound = 0;
-	}
+	}*/
 	
 	int[] clients = new int[MaxClients];
 	int numClients;
@@ -2697,9 +2688,9 @@ stock void SaveResume( int client )
 stock void SpawnPlayer( int client )
 {
 	// Spawning players are automatically teleported to start.
-	if ( GetClientTeam( client ) <= TFTeam_Spectator )
+	if (  view_as<int>(GetClientTeam( client )) <=  view_as<int>(TFTeam_Spectator) )
 	{
-		ChangeClientTeam( client, g_iPreferredTeam );
+		ChangeClientTeam( client,  view_as<int>(g_iPreferredTeam) );
 		TF2_RespawnPlayer( client );
 	}
 	else if ( !IsPlayerAlive( client ) || !g_bIsLoaded[ g_iClientRun[client] ] )

@@ -84,7 +84,7 @@ public void Event_WeaponDropPost( int client, int weapon )
 
 public Action Event_ClientTeam( Handle hEvent, const char[] szEvent, bool bDontBroadcast )
 {
-	if ( GetEventInt( hEvent, "team" ) > TFTeam_Spectator )
+	if (  view_as<int>(GetEventInt( hEvent, "team" )) > view_as<int>(TFTeam_Spectator) )
 	{
 		CreateTimer( 1.0, Timer_ClientJoinTeam, GetEventInt( hEvent, "userid" ), TIMER_FLAG_NO_MAPCHANGE );
 	}
@@ -189,7 +189,8 @@ public Action Timer_ClientSpawn( Handle hTimer, any client )
 		SetEntityGravity( client, 0.0 );
 		SetEntityMoveType( client, MOVETYPE_NOCLIP );
 #endif
-
+		SetBotName(client);
+		TF2_SetPlayerClass(client, ClassTypeFromMode(g_iClientMode[client]), true, true);
 		return Plugin_Handled;
 	}
 	
@@ -249,6 +250,7 @@ public Action Event_OnTakeDamage_Client( int victim, int &attacker, int &inflict
 		flDamage = 0.0;
 		return Plugin_Changed;
 	}
+	return Plugin_Continue;
 }
 
 public Action Event_RoundRestart( Handle hEvent, const char[] szEvent, bool bDontBroadcast )

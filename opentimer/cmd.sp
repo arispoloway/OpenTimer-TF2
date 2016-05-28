@@ -144,7 +144,7 @@ public Action OnPlayerRunCmd(	int client,
 		///////////////////////////
 		// Please note that this is not an accurate representation of sync. However, it is close enough.
 		// Don't calc sync and strafes for special styles.
-		if ( true ) // used to be if(g_iClientStyle[client] != STYLE_W && g_iClientStyle[client] != STYLE_A_D)
+		//if ( true ) used to have a check here if(g_iClientStyle[client] != STYLE_W && g_iClientStyle[client] != STYLE_A_D)
 		{
 			static float flClientLastSpdSq[MAXPLAYERS];
 			static float flClientPrevYaw[MAXPLAYERS];

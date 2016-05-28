@@ -145,11 +145,11 @@ stock void ShowKeyHintText( int client, int target )
 			}
 			else
 			{*/
-				FormatEx( szText, sizeof( szText ), "Name: %s\nTime: %s\n \nJumps: %i\nStrafes: %i",
-					g_szRecName[run][style][mode],
-					szTime,
-					g_nRecJumps[run][style][mode],
-					g_nRecStrafes[run][style][mode] );
+			FormatEx( szText, sizeof( szText ), "Name: %s\nTime: %s\n \nJumps: %i\nStrafes: %i",
+				g_szRecName[run][style][mode],
+				szTime,
+				g_nRecJumps[run][style][mode],
+				g_nRecStrafes[run][style][mode] );
 			//}
 
 #else

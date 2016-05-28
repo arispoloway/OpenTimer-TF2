@@ -152,7 +152,7 @@ public Action Command_Spectate( int client, int args )
 {
 	if ( !client ) return Plugin_Handled;
 	
-	if ( GetClientTeam( client ) <= TFTeam_Spectator )
+	if (  view_as<int>(GetClientTeam( client )) <=  view_as<int>(TFTeam_Spectator) )
 	{
 		SpawnPlayer( client );
 		return Plugin_Handled;
@@ -164,7 +164,7 @@ public Action Command_Spectate( int client, int args )
 		SaveResume( client );
 	}
 	
-	ChangeClientTeam( client, TFTeam_Spectator );
+	ChangeClientTeam( client,  view_as<int>(TFTeam_Spectator) );
 	
 	if ( args )
 	{
