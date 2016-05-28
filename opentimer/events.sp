@@ -190,7 +190,10 @@ public Action Timer_ClientSpawn( Handle hTimer, any client )
 		SetEntityMoveType( client, MOVETYPE_NOCLIP );
 #endif
 		SetBotName(client);
-		TF2_SetPlayerClass(client, ClassTypeFromMode(g_iClientMode[client]), true, true);
+		if(TF2_GetPlayerClass(client) != ClassTypeFromMode(g_iClientMode[client])){
+			TF2_SetPlayerClass(client, ClassTypeFromMode(g_iClientMode[client]), true, true);
+			TF2_RespawnPlayer(client);
+		}
 		return Plugin_Handled;
 	}
 	

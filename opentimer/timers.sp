@@ -459,6 +459,7 @@ public Action Timer_DrawBuildZoneStart( Handle hTimer, int client )
         g_nClientTick[mimic] = PLAYBACK_START;
 		
 		SetBotName(mimic);
+		SetClientFOV(mimic, 90);
 		
         TF2_SetPlayerClass(mimic, ClassTypeFromMode(g_iClientMode[mimic]), true, true);
 		if (TF2_GetPlayerClass(mimic) == TFClass_Soldier)

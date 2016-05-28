@@ -2501,10 +2501,7 @@ stock void AssignRecordToBot( int mimic, int run, int style, int mode )
 	g_nClientTick[mimic] = PLAYBACK_PRE;
 	
 	
-	TF2_SetPlayerClass(mimic, ClassTypeFromMode(mode), true, true);
 	ChangeClientTeam( mimic,  view_as<int>(g_iPreferredTeam) );
-	TeleportPlayerToStart(mimic);
-	TF2_SetPlayerClass(mimic, ClassTypeFromMode(mode), true, true);
 	
 	CreateTimer( 2.0, Timer_Rec_Start, g_iRec[run][style][mode] );
 }
