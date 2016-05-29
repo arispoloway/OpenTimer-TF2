@@ -2751,7 +2751,7 @@ public int getClass(int client)
 }
 
 public void GhostBotIfAvailable(int client){
-	if(NumberOfPlayers() == 1 && g_iRec[g_iClientRun[client]][g_iClientStyle[client]][g_iClientMode[client]] != 0){
+	if(NumberOfActivePlayers() == 1 && g_iRec[g_iClientRun[client]][g_iClientStyle[client]][g_iClientMode[client]] != 0){
 		CreateTimer( 0.0, Timer_Rec_Start, g_iRec[g_iClientRun[client]][g_iClientStyle[client]][g_iClientMode[client]], TIMER_FLAG_NO_MAPCHANGE );
 	}
 }
