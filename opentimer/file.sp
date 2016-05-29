@@ -46,8 +46,6 @@ stock bool SaveRecording(	int id,
 							int mode,
 							ArrayList &hRec,
 							float flTime,
-							int jumps,
-							int strafes,
 							char szName[MAX_NAME_LENGTH],
 							char szSteam[MAX_ID_LENGTH] )
 {
@@ -98,9 +96,6 @@ stock bool SaveRecording(	int id,
 	WriteFileCell( hFile, mode, 4 );
 	
 	WriteFileCell( hFile, view_as<int>( flTime ), 4 );
-	
-	WriteFileCell( hFile, jumps, 4 );
-	WriteFileCell( hFile, strafes, 4 );
 	
 	WriteFileString( hFile, g_szCurrentMap, true );
 	
@@ -189,9 +184,6 @@ stock bool LoadRecording( ArrayList &hRec, int &tickcount, int id, int iRun, int
 	
 	ReadFileCell( hFile, temp, 4 ); // Time
 	
-	
-	ReadFileCell( hFile, temp, 4 ); // JUMPS
-	ReadFileCell( hFile, temp, 4 ); // STRAFES
 	
 	char szSteam[MAX_ID_LENGTH];
 	char szTemp[32]; // Map name and player name both max length 32.

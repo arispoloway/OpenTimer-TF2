@@ -212,13 +212,13 @@ public Action Timer_ClientSpawn( Handle hTimer, any client )
 // We assume that CS:GO servers will handle the stamina themselves.
 public Action Event_ClientJump( Handle hEvent, const char[] szEvent, bool bDontBroadcast )
 {
-	static int client;
-	if ( !(client = GetClientOfUserId( GetEventInt( hEvent, "userid" ) )) )
+	//static int client;
+	//if ( !(client = GetClientOfUserId( GetEventInt( hEvent, "userid" ) )) )
 		return;
 	
 	
-	if ( g_iClientState[client] != STATE_END )
-		g_nClientJumps[client]++;
+	//if (g_iClientState[client] != STATE_END)
+		
 	
 	/*if ( g_bEZHop && !HasScroll( client ) )
 	{

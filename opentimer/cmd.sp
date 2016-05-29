@@ -21,32 +21,11 @@ public Action OnPlayerRunCmd(	int client,
 	{
 		bool bOnGround = ( GetEntityFlags( client ) & FL_ONGROUND ) ? true : false;
 		
-		// We don't want ladders or water counted as jumpable space.
 		MoveType iMoveType = GetEntityMoveType( client );
-		bool bIsInValidAir = ( !bOnGround && iMoveType == MOVETYPE_WALK && GetClientWaterLevel( client ) < 2 );
 		
 		if ( bOnGround )
 		{
-			// VELCAP
-			/*
-			if ( g_iClientMode[client] == MODE_VELCAP && !( g_fClientFreestyleFlags[client] & ZONE_VEL_NOSPEEDCAP ) )
-			{
-				static float vecVel[3];
-				GetEntityVelocity( client, vecVel );
-				
-				static float flSpd;
-				flSpd = vecVel[0] * vecVel[0] + vecVel[1] * vecVel[1];
-				
-				if ( flSpd > g_flVelCapSq )
-				{
-					flSpd = SquareRoot( flSpd ) / g_flVelCap;
-					
-					vecVel[0] /= flSpd;
-					vecVel[1] /= flSpd;
-					
-					TeleportEntity( client, NULL_VECTOR, NULL_VECTOR, vecVel );
-				}
-			}*/
+
 			
 #if defined ANTI_DOUBLESTEP
 			if ( g_bClientHoldingJump[client] ) buttons |= IN_JUMP;
@@ -138,70 +117,8 @@ public Action OnPlayerRunCmd(	int client,
 			}
 		}
 #endif
+
 		
-		///////////////////////////
-		// SYNC AND STRAFE COUNT //
-		///////////////////////////
-		// Please note that this is not an accurate representation of sync. However, it is close enough.
-		// Don't calc sync and strafes for special styles.
-		//if ( true ) used to have a check here if(g_iClientStyle[client] != STYLE_W && g_iClientStyle[client] != STYLE_A_D)
-		{
-			static float flClientLastSpdSq[MAXPLAYERS];
-			static float flClientPrevYaw[MAXPLAYERS];
-			
-			static float flSpd;
-			flSpd = GetEntitySpeedSquared( client );
-			
-			if ( bIsInValidAir )
-			{
-				// The reason why we don't just use mouse[0] to determine whether our player is strafing is because it isn't reliable.
-				// If a player is using a strafe hack, the variable doesn't change.
-				// If a player is using a controller, the variable doesn't change. (unless using no acceleration)
-				// If a player has a controller plugged in and uses mouse instead, the variable doesn't change.
-				static int iClientLastStrafe[MAXPLAYERS] = { STRAFE_INVALID, ... };
-				
-				// Not on ground, moving mouse and we're pressing at least some key.
-				if ( angles[1] != flClientPrevYaw[client] )
-				{
-					static int iClientSync[MAXPLAYERS][NUM_STRAFES];
-					static int iClientSync_Max[MAXPLAYERS][NUM_STRAFES];
-					
-					static int iCurStrafe;
-					
-					if (	( buttons & IN_FORWARD || buttons & IN_BACK || buttons & IN_MOVELEFT || buttons & IN_MOVERIGHT )
-						&&	( flSpd > flClientLastSpdSq[client] ) // I know this isn't the future speed but it goes.
-						&&	(iCurStrafe = GetStrafeDir( flClientPrevYaw[client], angles[1] )) != iClientLastStrafe[client] )
-					// Start of a new strafe.
-					{
-						// Calc previous strafe's sync. This will then be shown to the player.
-						if ( iClientLastStrafe[client] != STRAFE_INVALID )
-						{
-							// (Prev sync + X / ALL_X) / 2
-							g_flClientSync[client][ iClientLastStrafe[client] ] = ( g_flClientSync[client][ iClientLastStrafe[client] ] + iClientSync[client][ iClientLastStrafe[client] ] / float( iClientSync_Max[client][ iClientLastStrafe[client] ] ) ) / 2;
-						}
-						
-						// Reset the new strafe's variables.
-						iClientSync[client][iCurStrafe] = 1;
-						iClientSync_Max[client][iCurStrafe] = 1;
-						
-						iClientLastStrafe[client] = iCurStrafe;
-						g_nClientStrafes[client]++;
-					}
-					
-					// We're moving our mouse, but are we gaining speed?
-					if ( flSpd > flClientLastSpdSq[client] )
-					{
-						iClientSync[client][iCurStrafe]++;
-					}
-					
-					
-					iClientSync_Max[client][iCurStrafe]++;
-				}
-			}
-			
-			flClientLastSpdSq[client] = flSpd;
-			flClientPrevYaw[client] = angles[1];
-		}
 		
 		
 		// MODES

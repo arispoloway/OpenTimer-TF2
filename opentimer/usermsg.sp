@@ -111,11 +111,7 @@ stock void ShowKeyHintText( int client, int target )
 				else
 				{*/
 					// "Strafes: XXXXXCL Sync: 100.0CL Sync: 100.0CR Sync: 100.0CJumps: XXXXC CStyle: Real HSW ScrollCPB: 00:00:00.00C(Practice Mode)"
-					FormatEx( szText, sizeof( szText ), "Strafes: %i\nL Sync: %3.1f\nR Sync: %3.1f\nJumps: %i\n \nStyle: %s%s\nPB: %s\n%s",
-						g_nClientStrafes[target],
-						g_flClientSync[target][STRAFE_LEFT] * 100.0, // Left Sync
-						g_flClientSync[target][STRAFE_RIGHT] * 100.0, // Right Sync
-						g_nClientJumps[target],
+					FormatEx( szText, sizeof( szText ), "Style: %s%s\nPB: %s\n%s",
 						g_szStyleName[NAME_LONG][style],
 						szStylePostFix,
 						szTime,
@@ -145,11 +141,9 @@ stock void ShowKeyHintText( int client, int target )
 			}
 			else
 			{*/
-			FormatEx( szText, sizeof( szText ), "Name: %s\nTime: %s\n \nJumps: %i\nStrafes: %i",
+			FormatEx( szText, sizeof( szText ), "Name: %s\nTime: %s",
 				g_szRecName[run][style][mode],
-				szTime,
-				g_nRecJumps[run][style][mode],
-				g_nRecStrafes[run][style][mode] );
+				szTime);
 			//}
 
 #else

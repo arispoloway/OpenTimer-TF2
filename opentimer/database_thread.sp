@@ -35,8 +35,6 @@ public void Threaded_PrintRecords( Handle hOwner, Handle hQuery, const char[] sz
 		
 		if ( SQL_GetRowCount( hQuery ) )
 		{
-			int			jumps;
-			int			strafes;
 			int			style;
 			int			mode;
 			static char	szSteam[MAX_ID_LENGTH];
@@ -61,19 +59,14 @@ public void Threaded_PrintRecords( Handle hOwner, Handle hQuery, const char[] sz
 					GetStylePostfix( mode, szStyleFix );
 					
 					SQL_FetchString( hQuery, 4, szSteam, sizeof( szSteam ) );
-				
-					jumps = SQL_FetchInt( hQuery, 5 );
-					strafes = SQL_FetchInt( hQuery, 6 );
 					
-					PrintToConsole( client, "%i. %s - %s - %s - %s%s - %i jmps - %i strfs",
+					PrintToConsole( client, "%i. %s - %s - %s - %s%s",
 						num + 1,
 						szName,
 						szSteam,
 						szFormTime,
 						g_szStyleName[NAME_LONG][style],
-						szStyleFix,
-						jumps,
-						strafes );
+						szStyleFix);
 				}
 				else
 				{
@@ -638,7 +631,7 @@ public void Threaded_Init_Zones( Handle hOwner, Handle hQuery, const char[] szEr
 		
 		// Get map data for records and votes!
 #if defined RECORD
-		FormatEx( szQuery, sizeof( szQuery ), "SELECT run, style, mode, time, uid, name, jumps, strafes FROM "...TABLE_RECORDS..." NATURAL JOIN "...TABLE_PLYDATA..." WHERE map = '%s' GROUP BY run, style, mode ORDER BY MIN(time)", g_szCurrentMap );
+		FormatEx( szQuery, sizeof( szQuery ), "SELECT run, style, mode, time, uid, name FROM "...TABLE_RECORDS..." NATURAL JOIN "...TABLE_PLYDATA..." WHERE map = '%s' GROUP BY run, style, mode ORDER BY MIN(time)", g_szCurrentMap );
 #else
 		FormatEx( szQuery, sizeof( szQuery ), "SELECT run, style, mode, time FROM "...TABLE_RECORDS..." WHERE map = '%s' GROUP BY run, style ORDER BY MIN(time)", g_szCurrentMap );
 #endif
@@ -708,8 +701,6 @@ public void Threaded_Init_Records( Handle hOwner, Handle hQuery, const char[] sz
 			
 			g_iRecMaxLength[iRun][iStyle][iMode] = RoundFloat( g_iRecLen[iRun][iStyle][iMode] * 1.2 );
 			
-			g_nRecJumps[iRun][iStyle][iMode] = SQL_FetchInt( hQuery, 6 );
-			g_nRecStrafes[iRun][iStyle][iMode] = SQL_FetchInt( hQuery, 7 );
 			
 			num_recs++;
 		}

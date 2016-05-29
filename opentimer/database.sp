@@ -78,7 +78,7 @@ stock void DB_InitializeDatabase()
 		"CREATE TABLE IF NOT EXISTS "...TABLE_ZONES..." (map VARCHAR(32) NOT NULL, zone INT NOT NULL, id INT NOT NULL DEFAULT 0, min0 REAL NOT NULL, min1 REAL NOT NULL, min2 REAL NOT NULL, max0 REAL NOT NULL, max1 REAL NOT NULL, max2 REAL NOT NULL, flags INT NOT NULL DEFAULT 0, PRIMARY KEY(map, zone, id))", _, DBPrio_High );
 	
 	SQL_TQuery( g_hDatabase, Threaded_Empty,
-		"CREATE TABLE IF NOT EXISTS "...TABLE_RECORDS..." (map VARCHAR(32) NOT NULL, uid INT NOT NULL, run INT NOT NULL, style INT NOT NULL, mode INT NOT NULL, time REAL NOT NULL, jumps INT NOT NULL, strafes INT NOT NULL, PRIMARY KEY (map, uid, run, style, mode))", _, DBPrio_High );
+		"CREATE TABLE IF NOT EXISTS "...TABLE_RECORDS..." (map VARCHAR(32) NOT NULL, uid INT NOT NULL, run INT NOT NULL, style INT NOT NULL, mode INT NOT NULL, time REAL NOT NULL, PRIMARY KEY (map, uid, run, style, mode))", _, DBPrio_High );
 	
 	SQL_TQuery( g_hDatabase, Threaded_Empty,
 		"CREATE TABLE IF NOT EXISTS "...TABLE_CP..." (map VARCHAR(32) NOT NULL, id INT NOT NULL, run INT NOT NULL, min0 REAL NOT NULL, min1 REAL NOT NULL, min2 REAL NOT NULL, max0 REAL NOT NULL, max1 REAL NOT NULL, max2 REAL NOT NULL, PRIMARY KEY(map, id, run))", _, DBPrio_High );
@@ -207,7 +207,7 @@ stock void DB_PrintRecords( int client, bool bInConsole, int iRun = RUN_MAIN, in
 	
 	if ( bInConsole )
 	{
-		strcopy( szQuery, sizeof( szQuery ), "SELECT style, mode, time, name, steamid, jumps, strafes" );
+		strcopy( szQuery, sizeof( szQuery ), "SELECT style, mode, time, name, steamid" );
 	}
 	else
 	{
@@ -322,15 +322,13 @@ stock bool DB_SaveClientRecord( int client, float flNewTime )
 		// Insert new if we haven't beaten this one yet. Replace otherwise.
 		
 		// INSERT INTO maprecs VALUES ('bhop_gottagofast', 2, 0, 0, 1, 1337.000, 444, 333)
-		FormatEx( szQuery, sizeof( szQuery ), "INSERT OR REPLACE INTO "...TABLE_RECORDS..." VALUES ('%s', %i, %i, %i, %i, %.3f, %i, %i)",
+		FormatEx( szQuery, sizeof( szQuery ), "INSERT OR REPLACE INTO "...TABLE_RECORDS..." VALUES ('%s', %i, %i, %i, %i, %.3f)",
 			g_szCurrentMap,
 			g_iClientId[client],
 			run,
 			style,
 			mode,
-			flNewTime,
-			g_nClientJumps[client],
-			g_nClientStrafes[client] );
+			flNewTime);
 		
 		SQL_TQuery( g_hDatabase, Threaded_Empty, szQuery, _, DBPrio_High );
 		
@@ -431,8 +429,6 @@ stock bool DB_SaveClientRecord( int client, float flNewTime )
 							mode,
 							g_hClientRec[client],
 							flNewTime,
-							g_nClientJumps[client],
-							g_nClientStrafes[client],
 							szName,
 							szSteam );
 			

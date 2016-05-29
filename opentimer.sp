@@ -359,11 +359,6 @@ int g_iClientCurCP[MAXPLAYERS];
 ArrayList g_hClientCPData[MAXPLAYERS];
 
 
-// Player stats
-int g_nClientJumps[MAXPLAYERS];
-int g_nClientStrafes[MAXPLAYERS];
-float g_flClientSync[MAXPLAYERS][NUM_STRAFES];
-
 // Misc player stuff.
 int g_iClientId[MAXPLAYERS]; // IMPORTANT!!
 
@@ -411,8 +406,6 @@ int g_iClientLastUsedSave[MAXPLAYERS] = { INVALID_SAVE, ... };
 	int g_iRecLen[NUM_RUNS][NUM_STYLES][NUM_MODES];
 	ArrayList g_hRec[NUM_RUNS][NUM_STYLES][NUM_MODES];
 	char g_szRecName[NUM_RUNS][NUM_STYLES][NUM_MODES][MAX_NAME_LENGTH];
-	int g_nRecJumps[NUM_RUNS][NUM_STYLES][NUM_MODES];
-	int g_nRecStrafes[NUM_RUNS][NUM_STYLES][NUM_MODES];
 	
 	
 	// Max tick count for player's recording.
@@ -818,8 +811,8 @@ public void OnPluginStart()
 	
 	// STYLE CONVARS
 	//g_ConVar_Def_Style = CreateConVar( "timer_def_style", "0", "What is our default style?", _, true, 0.0, true, 1.0 );
-	g_ConVar_Allow_AutoBhop = CreateConVar( "timer_allow_autobhop", "1", "Is Sideways-style allowed?", FCVAR_NOTIFY, true, 0.0, true, 1.0 );
-	g_ConVar_Allow_Crouched = CreateConVar( "timer_allow_crouched", "1", "Is W-Only-style allowed?", FCVAR_NOTIFY, true, 0.0, true, 1.0 );
+	g_ConVar_Allow_AutoBhop = CreateConVar( "timer_allow_autobhop", "1", "Is AutoBhop-style allowed?", FCVAR_NOTIFY, true, 0.0, true, 1.0 );
+	g_ConVar_Allow_Crouched = CreateConVar( "timer_allow_crouched", "1", "Is Crouched-style allowed?", FCVAR_NOTIFY, true, 0.0, true, 1.0 );
 	
 	g_ConVar_Def_Mode = CreateConVar( "timer_def_mode", "0", "What mode is the default one? 0 = Autobhop, 1 = Scroll, 2 = Scroll + VelCap", _, true, 0.0, true, 2.0 );
 	//g_ConVar_Allow_Mode_Auto = CreateConVar( "timer_allow_mode_auto", "1", "Is Autobhop-mode allowed?", FCVAR_NOTIFY, true, 0.0, true, 1.0 );
@@ -1151,12 +1144,6 @@ public void OnClientPutInServer( int client )
 			ArrayFill( g_flClientBestTime[client][i][k], TIME_INVALID, NUM_MODES );
 	
 	
-	// Stats
-	g_nClientJumps[client] = 0;
-	g_nClientStrafes[client] = 0;
-	
-	g_flClientSync[client][STRAFE_LEFT] = 1.0;
-	g_flClientSync[client][STRAFE_RIGHT] = 1.0;
 	
 	
 	// Practicing
@@ -1339,9 +1326,6 @@ public void Event_PostThinkPost_Client( int client )
 		}*/
 		
 		
-		g_flClientSync[client][STRAFE_LEFT] = 1.0;
-		g_flClientSync[client][STRAFE_RIGHT] = 1.0;
-		
 		
 		// Style stuff
 		g_nClientStyleFail[client] = 0;
@@ -1446,8 +1430,6 @@ public void Event_PostThinkPost_Client( int client )
 		// Did we not jump when we were on the ground?
 		if ( (g_iClientState[client] != STATE_START) || (GetEntityFlags( client ) & FL_ONGROUND && !( GetClientButtons( client ) & IN_JUMP )) )
 		{
-			g_nClientJumps[client] = 0;
-			g_nClientStrafes[client] = 0;
 			
 			if ( g_iClientState[client] != STATE_START )
 			{
@@ -2427,9 +2409,6 @@ stock void CopyRecordToPlayback( int client )
 	
 	g_hRec[run][style][mode] = g_hClientRec[client].Clone();
 	g_iRecLen[run][style][mode] = g_hClientRec[client].Length;
-	
-	g_nRecJumps[run][style][mode] = g_nClientJumps[client];
-	g_nRecStrafes[run][style][mode] = g_nClientStrafes[client];
 	
 	
 	delete g_hClientRec[client];
