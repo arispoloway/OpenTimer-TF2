@@ -227,3 +227,11 @@ stock int CreateTrigger( float vecMins[3], float vecMaxs[3] )
 	
 	return ent;
 }
+
+stock int NumberOfPlayers(){
+	int count = 0;
+	for ( int i = 1; i <= MaxClients; i++ )
+		if (IsClientConnected(i) && !IsFakeClient(i))count++;
+	return count;
+           
+}

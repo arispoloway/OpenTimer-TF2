@@ -484,7 +484,7 @@ public Action Timer_DrawBuildZoneStart( Handle hTimer, int client )
        
         g_nClientTick[mimic] = PLAYBACK_PRE;
        
-        CreateTimer( 2.0, Timer_Rec_Start, mimic, TIMER_FLAG_NO_MAPCHANGE );
+        CreateTimer( 1.0, Timer_Rec_Start, mimic, TIMER_FLAG_NO_MAPCHANGE );
         
         if (TF2_GetPlayerClass(mimic) == TFClass_Soldier)
 		{

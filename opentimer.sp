@@ -1365,6 +1365,10 @@ public void Event_PostThinkPost_Client( int client )
 		{
 			g_bClientRecording[client] = false;
 		}
+#if defined RECORD
+		GhostBotIfAvailable(client);
+#endif
+		
 #endif
 	}
 	else if ( g_iClientState[client] == STATE_RUNNING && bInsideZone[client][INSIDE_END] )
@@ -2746,3 +2750,8 @@ public int getClass(int client)
 	return class;
 }
 
+public void GhostBotIfAvailable(int client){
+	if(NumberOfPlayers() == 1 && g_iRec[g_iClientRun[client]][g_iClientStyle[client]][g_iClientMode[client]] != 0){
+		CreateTimer( 0.0, Timer_Rec_Start, g_iRec[g_iClientRun[client]][g_iClientStyle[client]][g_iClientMode[client]], TIMER_FLAG_NO_MAPCHANGE );
+	}
+}
