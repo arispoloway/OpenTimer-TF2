@@ -430,7 +430,7 @@ float g_vecSpawnPos[NUM_RUNS][3];
 float g_vecSpawnAngles[NUM_RUNS][3];
 float g_flMapBestTime[NUM_RUNS][NUM_STYLES][NUM_MODES];
 int g_iBeam;
-TFTeam g_iPreferredTeam = TFTeam_Blue;
+TFTeam g_iPreferredTeam = TFTeam_Spectator;
 
 
 // Voting stuff
@@ -499,7 +499,7 @@ ConVar g_ConVar_LegitFPS;
 
 // Cvar cache variables.
 float g_flDefAirAccelerate = 10.0;
-float g_flBhopAirAccelerate = 100.0;
+float g_flBhopAirAccelerate = 2000.0;
 float g_flPreSpeed = 278.0;
 float g_flPreSpeedSq = 90000.0;
 bool g_bIgnoreLadderStyle = true;
@@ -1252,7 +1252,7 @@ public void Event_PreThinkPost_Client( int client )
 	// Set our sv_airaccelerate value to client's preferred style.
 	// Airmove calculates acceleration by taking the sv_airaccelerate-cvar value.
 	// This means we can change the value before the calculations happen.
-	//SetConVarFloat( g_ConVar_AirAccelerate, ( HasScroll( client ) ) ? g_flBhopAirAccelerate : g_flDefAirAccelerate );
+	SetConVarFloat( g_ConVar_AirAccelerate, ( HasScroll( client ) ) ? g_flBhopAirAccelerate : g_flDefAirAccelerate );
 }
 
 // Used just here.
@@ -1562,8 +1562,15 @@ stock void SetPlayerStyle( int client, int reqstyle )
 	// Reset style back to normal if requesting the same style as they have now.
 	if ( g_iClientStyle[client] == reqstyle ) reqstyle = STYLE_NORMAL;
 	
+	
 	g_iClientStyle[client] = reqstyle;
 	PrintStyle( client );
+	
+	float flNewAirAccel = ( reqstyle == STYLE_AUTOBHOP ) ? g_flBhopAirAccelerate : g_flDefAirAccelerate;
+	
+	SetClientPredictedAirAcceleration( client, flNewAirAccel );
+	
+	PRINTCHATV( client, CHAT_PREFIX..."Your air acceleration is now "...CLR_TEAM..."%.0f"...CLR_TEXT..."!", flNewAirAccel );
 	
 	UpdateScoreboard( client );
 }
@@ -1832,7 +1839,7 @@ stock void DetermineSpawns()
 		SetConVarString( hCvar_HumanTeam, "any", true );
 		SetConVarString( hCvar_BotTeam, "any", true );
 		
-		g_iPreferredTeam = TFTeam_Blue;
+		g_iPreferredTeam = TFTeam_Spectator;
 	}
 }
 
@@ -2129,10 +2136,10 @@ stock void ResetBuilding( int client )
 	g_iBuilderZone[client] = ZONE_INVALID;
 }
 
-/*stock bool HasScroll( int client )
+stock bool HasScroll( int client )
 {
-	return ( g_iClientMode[client] != MODE_AUTO );
-}*/
+	return ( g_iClientStyle[client] != STYLE_NORMAL );
+}
 
 stock void CheckZones()
 {
