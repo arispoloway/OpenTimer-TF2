@@ -997,6 +997,7 @@ public void OnMapStart()
 #endif
 
 	DetermineSpawns();
+	LockCPs();
 	
 	CreateTimer( 3.0, Timer_OnMapStart_Delay, _, TIMER_FLAG_NO_MAPCHANGE );
 }
@@ -2753,5 +2754,17 @@ public int getClass(int client)
 public void GhostBotIfAvailable(int client){
 	if(NumberOfActivePlayers() == 1 && g_iRec[g_iClientRun[client]][g_iClientStyle[client]][g_iClientMode[client]] != 0){
 		CreateTimer( 0.0, Timer_Rec_Start, g_iRec[g_iClientRun[client]][g_iClientStyle[client]][g_iClientMode[client]], TIMER_FLAG_NO_MAPCHANGE );
+	}
+}
+
+stock void LockCPs()
+{
+	int iCP = -1;
+	while ((iCP = FindEntityByClassname(iCP, "trigger_capture_area")) != -1)
+	{
+		SetVariantString("2 0");
+		AcceptEntityInput(iCP, "SetTeamCanCap");
+		SetVariantString("3 0");
+		AcceptEntityInput(iCP, "SetTeamCanCap");
 	}
 }
