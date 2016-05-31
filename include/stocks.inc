@@ -40,10 +40,10 @@ stock void SetClientOldButtons( int client, int buttons )
 	SetEntProp( client, Prop_Data, "m_nOldButtons", buttons );
 }
 
-stock int GetClientWaterLevel( int client )
+/*stock int GetClientWaterLevel( int client )
 {
 	return GetEntProp( client, Prop_Send, "m_nWaterLevel" );
-}
+}*/
 
 stock void ClampFloat( float &fl, float min, float max )
 {
