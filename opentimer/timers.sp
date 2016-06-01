@@ -75,8 +75,8 @@ public Action Timer_HudTimer( Handle hTimer )
             ShowKeyHintText( client, target );
         }
 #endif
-       
-        if ( !(g_fClientHideFlags[client] & HIDEHUD_TIMER) )
+
+        if ( !(g_fClientHideFlags[client] & HIDEHUD_TIMER))
         {
 #if defined RECORD
             if ( IsFakeClient( target ) )
@@ -84,97 +84,104 @@ public Action Timer_HudTimer( Handle hTimer )
                 static char szStylePostFix[STYLEPOSTFIX_LENGTH];
                 GetStylePostfix( g_iClientMode[target], szStylePostFix );
                
-                // For CSS.
-                char szName[MAX_REC_NAME];
                
-                Format(hintOutput, 256, "Replay Bot\n %s - %s%s\n %s \nSpeed\n%.0f",
+               	int tick = g_nClientTick[target];
+               	float flSeconds = tick / 66.666666;
+               	static char szMyTime[TIME_SIZE_DEF];
+               	bool bDesi;
+              	if ( g_iClientState[target] == STATE_END)
+	            {
+					
+	                // Show our finish time if we're at the ending
+	                bDesi = false;
+	            }
+	            else
+	            {
+	                // Else, we show our current time.
+	                bDesi = true;
+	            }
+               	FormatSeconds( flSeconds, szMyTime, bDesi ? FORMAT_DESI : 0 );
+               	
+                Format(hintOutput, 256, "Replay Bot\n %s - %s\n %s",
                     g_szRunName[NAME_LONG][ g_iClientRun[target] ],
                     g_szStyleName[NAME_LONG][ g_iClientStyle[target] ],
-                    szStylePostFix,
-                    szName,
-                    GetEntitySpeed( target ) );
-                continue;
-            }
+                    szMyTime);
+            } else
 #endif // RECORD
  
             if ( !g_bIsLoaded[ g_iClientRun[client] ] )
             {
                 // No zones were found.
-                Format(hintOutput, 256, "Speed\n%.0f", GetEntitySpeed( target ) );
-                continue;
-            }
-           
-            if ( g_iClientState[target] == STATE_START )
+                Format(hintOutput, 256, "");
+            } else if ( g_iClientState[target] == STATE_START )
             {
-	
-
                 // We are in the start zone.
-                Format(hintOutput, 256, "Starting Zone\n%s\n \nSpeed\n%.0f", g_szRunName[NAME_LONG][ g_iClientRun[target] ], GetEntitySpeed( target ) );
-                break;
-            }
+                Format(hintOutput, 256, "Starting Zone\n%s", g_szRunName[NAME_LONG][ g_iClientRun[target] ]);
+            } else {
            
-            static float flSeconds;
-            static bool bDesi;
-           
-            if ( g_iClientState[target] == STATE_END && g_flClientFinishTime[target] > TIME_INVALID )
-            {
-				
-                // Show our finish time if we're at the ending
-                bDesi = false;
-                flSeconds = g_flClientFinishTime[target];
-            }
-            else
-            {
-                // Else, we show our current time.
-                bDesi = true;
-                flSeconds = GetEngineTime() - g_flClientStartTime[target];
-            }
-           
-            static float flBestTime;
-            flBestTime = g_flMapBestTime[ g_iClientRun[target] ][ g_iClientStyle[target] ][ g_iClientMode[target] ];
-           
-            static char szMyTime[TIME_SIZE_DEF];
-            FormatSeconds( flSeconds, szMyTime, bDesi ? FORMAT_DESI : 0 );
-           
-            // We don't have a map best time! We don't need to show anything else.
-            if ( flBestTime <= TIME_INVALID )
-            {
-                Format(hintOutput, 256, "%s\n \nSpeed\n%.0f",
-                    szMyTime,
-                    GetEntitySpeed( target ) );
-               
-                continue;
-            }
-           
-           
-            int prefix = '-';
-            static float flBestSeconds;
-           
-            if ( flBestTime > flSeconds )
-            {
-                // We currently have "better" time than the map's best time.
-                flBestSeconds = flBestTime - flSeconds;
-            }
-            else
-            {
-                // Else, we have worse, so let's show the difference.
-                flBestSeconds = flSeconds - flBestTime;
-                prefix = '+';
-            }
-           
-            static char szBestTime[TIME_SIZE_DEF];
-            FormatSeconds( flBestSeconds, szBestTime, FORMAT_DESI );
-           
-            // WARNING: Each line has to have something (e.g space), or it will break.
-            // "00:00:00C(+00:00:00) C CSpeedCXXXX" - [38]
-            Format(hintOutput, 256, "%s\n(%c%s) \n \nSpeed\n%.0f",
-                szMyTime,
-                prefix,
-                szBestTime,
-                GetEntitySpeed( target ) );
+	            static float flSeconds;
+	            static bool bDesi;
+	           
+	            if ( g_iClientState[target] == STATE_END && g_flClientFinishTime[target] > TIME_INVALID )
+	            {
+					
+	                // Show our finish time if we're at the ending
+	                bDesi = false;
+	                flSeconds = g_flClientFinishTime[target];
+	            }
+	            else
+	            {
+	                // Else, we show our current time.
+	                bDesi = true;
+	                flSeconds = GetEngineTime() - g_flClientStartTime[target];
+	            }
+	           
+	            static float flBestTime;
+	            flBestTime = g_flMapBestTime[ g_iClientRun[target] ][ g_iClientStyle[target] ][ g_iClientMode[target] ];
+	           
+	            static char szMyTime[TIME_SIZE_DEF];
+	            FormatSeconds( flSeconds, szMyTime, bDesi ? FORMAT_DESI : 0 );
+	           
+	            // We don't have a map best time! We don't need to show anything else.
+	            if ( flBestTime <= TIME_INVALID )
+	            {
+	                Format(hintOutput, 256, "%s",
+	                    szMyTime );
+	            }
+	           
+	           
+	            int prefix = '-';
+	            static float flBestSeconds;
+	           
+	            if ( flBestTime > flSeconds )
+	            {
+	                // We currently have "better" time than the map's best time.
+	                flBestSeconds = flBestTime - flSeconds;
+	            }
+	            else
+	            {
+	                // Else, we have worse, so let's show the difference.
+	                flBestSeconds = flSeconds - flBestTime;
+	                prefix = '+';
+	            }
+	           
+	            static char szBestTime[TIME_SIZE_DEF];
+	            FormatSeconds( flBestSeconds, szBestTime, FORMAT_DESI );
+	           
+	            // WARNING: Each line has to have something (e.g space), or it will break.
+	            // "00:00:00C(+00:00:00) C CSpeedCXXXX" - [38]
+	            Format(hintOutput, 256, "%s\n(%c%s)",
+	                szMyTime,
+	                prefix,
+	                szBestTime);
+	        }
+	        
+	        if(g_bClientSpeedometerEnabled[client]){
+      		 	Format(hintOutput, 256, "%s\n \nSpeed\n%.0f", hintOutput, GetEntitySpeed(target));
+      		}
+      		PrintHintText( client, hintOutput);
+      		continue;
         }
-       
-        PrintHintText( client, hintOutput);
     }
    
     return Plugin_Continue;

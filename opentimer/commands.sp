@@ -614,3 +614,8 @@ public Action Command_JoinClass( int client, int args )
 {
 	return Plugin_Handled;
 }
+
+public Action Command_Toggle_Speedometer( int client, int args )
+{
+	g_bClientSpeedometerEnabled[client] = !g_bClientSpeedometerEnabled[client];
+}

@@ -166,7 +166,7 @@
 #define MAX_STYLE_FAILS			18 // For RHSW and HSW
 #define MAX_CHEATDETECTIONS		3
 
-#define TIMER_UPDATE_INTERVAL	0.1 // HUD Timer.
+#define TIMER_UPDATE_INTERVAL	0.5 // HUD Timer.
 #define ZONE_UPDATE_INTERVAL	0.5
 #define ZONE_BUILD_INTERVAL		0.1
 #define ZONE_WIDTH				1.0
@@ -363,6 +363,8 @@ ArrayList g_hClientCPData[MAXPLAYERS];
 // Misc player stuff.
 int g_iClientId[MAXPLAYERS]; // IMPORTANT!!
 
+float g_fClientLastConnectTime[MAXPLAYERS];
+bool g_bClientSpeedometerEnabled[MAXPLAYERS];
 int g_fClientFreestyleFlags[MAXPLAYERS];
 float g_flClientNextMsg[MAXPLAYERS]; // Used for freestyle messages.
 bool g_bClientValidFPS[MAXPLAYERS] = { true, ... };
@@ -691,6 +693,9 @@ public void OnPluginStart()
 	RegConsoleCmd( "sm_no-clip", Command_Practise_Noclip );
 	RegConsoleCmd( "sm_fly", Command_Practise_Noclip );
 	
+	
+	RegConsoleCmd( "sm_speedo", Command_Toggle_Speedometer );
+	RegConsoleCmd( "sm_speedometer", Command_Toggle_Speedometer );
 	
 	// HELP AND MISC.
 	RegConsoleCmd( "sm_commands", Command_Help );
@@ -1077,6 +1082,7 @@ public void OnClientPutInServer( int client )
 	g_bClientMimicing[client] = false;
 	g_nClientTick[client] = 0;
 	
+	g_fClientLastConnectTime[client] = GetEngineTime();
 	
 	if ( IsFakeClient( client ) )
 	{
@@ -1244,6 +1250,8 @@ public void OnClientDisconnect( int client )
 	g_iClientVote[client] = -1;
 	CalcVotes();
 #endif
+	g_bClientSpeedometerEnabled[client] = false;
+
 }
 
 public void Event_PreThinkPost_Client( int client )
