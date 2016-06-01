@@ -7,6 +7,7 @@
 #include <basecomm> // To check if client is gagged.
 #include <include/stocks>
 #include <include/opentimer_core>
+#include <include/fc>
 
 //	OPTIONS: Uncomment/comment things to change the plugin to your liking! Simply adding '//' (without quotation marks) in front of the line.
 // ------------------------------------------------------------------------------------------------------------------------------------------

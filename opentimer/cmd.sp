@@ -132,12 +132,21 @@ public Action OnPlayerRunCmd(	int client,
 			{
 				case STYLE_AUTOBHOP :
 				{
-					if (!bOnGround)
-						buttons = buttons & (~IN_JUMP);
+					if (!FC_BhopStatus(client))
+					{
+						FC_SetBhop(client, true, true, 1.0, 1.0);
+					}
 				}
 				case STYLE_CROUCHED :
 				{
 					buttons |= IN_DUCK;
+				}
+				case STYLE_NORMAL :
+				{
+					if (FC_BhopStatus(client))
+					{
+						FC_SetBhop(client, false, false, 1.0, 1.0);
+					}
 				}
 			}
 			
