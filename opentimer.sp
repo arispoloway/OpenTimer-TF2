@@ -499,7 +499,7 @@ ConVar g_ConVar_LegitFPS;
 
 // Cvar cache variables.
 float g_flDefAirAccelerate = 10.0;
-float g_flBhopAirAccelerate = 2000.0;
+float g_flBhopAirAccelerate = 1000.0;
 float g_flPreSpeed = 278.0;
 float g_flPreSpeedSq = 90000.0;
 bool g_bIgnoreLadderStyle = true;
@@ -791,9 +791,9 @@ public void OnPluginStart()
 	
 	g_ConVar_LadderStyle = CreateConVar( "timer_ladder_ignorestyle", "1", "Do we allow ladders to ignore player's style?", FCVAR_NOTIFY, true, 0.0, true, 1.0 );
 	
-	g_ConVar_Def_AirAccelerate = CreateConVar( "timer_def_airaccelerate", "1000", "What is the normal airaccelerate (autobhop styles)?", FCVAR_NOTIFY );
+	g_ConVar_Def_AirAccelerate = CreateConVar( "timer_def_airaccelerate", "10", "What is the normal airaccelerate (autobhop styles)?", FCVAR_NOTIFY );
 	
-	g_ConVar_Scroll_AirAccelerate = CreateConVar( "timer_scroll_airaccelerate", "100", "What is the airaccelerate for scroll styles? (legit/velcap)", FCVAR_NOTIFY );
+	g_ConVar_Scroll_AirAccelerate = CreateConVar( "timer_scroll_airaccelerate", "1000", "What is the airaccelerate for scroll styles? (legit/velcap)", FCVAR_NOTIFY );
 	
 #if defined RECORD
 	g_ConVar_SmoothPlayback = CreateConVar( "timer_smoothplayback", "0", "If false, playback movement will appear more responsive but choppy and teleportation (trigger_teleports) will not be affected by ping.", FCVAR_NOTIFY, true, 0.0, true, 1.0 );

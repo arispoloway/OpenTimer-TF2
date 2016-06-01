@@ -199,7 +199,7 @@ public Action Timer_ClientSpawn( Handle hTimer, any client )
 	
 	// NOTE: For some reason in CSGO, clients will crash when using this on bots(?)
 	// Bullets go through players.
-	SetEntProp( client, Prop_Send, "m_nHitboxSet", 2 );
+	if (IsFakeClient(client)) SetEntProp( client, Prop_Send, "m_nHitboxSet", 2 );
 	
 	//SetClientFOV( client, g_iClientFOV[client] );
 	
