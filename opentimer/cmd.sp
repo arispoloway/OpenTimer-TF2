@@ -140,6 +140,10 @@ public Action OnPlayerRunCmd(	int client,
 				case STYLE_CROUCHED :
 				{
 					buttons |= IN_DUCK;
+					if (FC_BhopStatus(client))
+					{
+						FC_SetBhop(client, false, false, 1.0, 1.0);
+					}
 				}
 				case STYLE_NORMAL :
 				{

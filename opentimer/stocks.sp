@@ -228,10 +228,10 @@ stock int CreateTrigger( float vecMins[3], float vecMaxs[3] )
 	return ent;
 }
 
-stock int NumberOfActivePlayers(){
+stock int NumberOfActivePlayersOfMode(int mode){
 	int count = 0;
 	for ( int i = 1; i <= MaxClients; i++ )
-		if (IsClientConnected(i) && !IsFakeClient(i) && !(TF2_GetClientTeam(i) == TFTeam_Spectator)) count++;
+		if (IsClientConnected(i) && !IsFakeClient(i) && !(TF2_GetClientTeam(i) == TFTeam_Spectator) && g_iClientMode[i] == mode) count++;
 	return count;
            
 }
