@@ -500,6 +500,8 @@ ConVar g_ConVar_Def_Mode;
 ConVar g_ConVar_VelCap;
 ConVar g_ConVar_LegitFPS;
 
+ConVar g_ConVar_SoldierRegenEnabled;
+
 // Cvar cache variables.
 float g_flDefAirAccelerate = 10.0;
 float g_flBhopAirAccelerate = 1000.0;
@@ -514,6 +516,7 @@ bool g_bIgnoreLadderStyle = true;
 
 // Forwards
 Handle g_hForward_Timer_OnStateChanged;
+
 
 
 // ------------------------
@@ -793,7 +796,7 @@ public void OnPluginStart()
 	
 	g_flTickRate = 1 / GetTickInterval();
 	
-	g_ConVar_PreSpeed = CreateConVar( "timer_prespeed", "400", "What is our prespeed limit? 0 = No limit.", FCVAR_NOTIFY, true, 0.0, true, 3500.0 );
+	g_ConVar_PreSpeed = CreateConVar( "timer_prespeed", "900", "What is our prespeed limit? 0 = No limit.", FCVAR_NOTIFY, true, 0.0, true, 3500.0 );
 	
 	g_ConVar_LadderStyle = CreateConVar( "timer_ladder_ignorestyle", "1", "Do we allow ladders to ignore player's style?", FCVAR_NOTIFY, true, 0.0, true, 1.0 );
 	
@@ -820,7 +823,7 @@ public void OnPluginStart()
 	g_ConVar_Allow_AutoBhop = CreateConVar( "timer_allow_autobhop", "1", "Is AutoBhop-style allowed?", FCVAR_NOTIFY, true, 0.0, true, 1.0 );
 	g_ConVar_Allow_Crouched = CreateConVar( "timer_allow_crouched", "1", "Is Crouched-style allowed?", FCVAR_NOTIFY, true, 0.0, true, 1.0 );
 	
-	g_ConVar_Def_Mode = CreateConVar( "timer_def_mode", "0", "What mode is the default one? 0 = Autobhop, 1 = Scroll, 2 = Scroll + VelCap", _, true, 0.0, true, 2.0 );
+	g_ConVar_Def_Mode = CreateConVar( "timer_def_mode", "0", "What mode is the default one? 0 = Scout, 1 = Soldier, 2 = Pyro, etc", _, true, 0.0, true, 2.0 );
 	//g_ConVar_Allow_Mode_Auto = CreateConVar( "timer_allow_mode_auto", "1", "Is Autobhop-mode allowed?", FCVAR_NOTIFY, true, 0.0, true, 1.0 );
 	//g_ConVar_Allow_Mode_Scroll = CreateConVar( "timer_allow_mode_scroll", "1", "Is Scroll-mode allowed?", FCVAR_NOTIFY, true, 0.0, true, 1.0 );
 	//g_ConVar_Allow_Mode_VelCap = CreateConVar( "timer_allow_mode_velcap", "1", "Is VelCap-mode allowed?", FCVAR_NOTIFY, true, 0.0, true, 1.0 );
@@ -828,6 +831,7 @@ public void OnPluginStart()
 	g_ConVar_VelCap = CreateConVar( "timer_velcap_limit", "400", "What is the speed limit for VelCap-mode?", FCVAR_NOTIFY, true, 250.0, true, 3500.0 );
 	g_ConVar_LegitFPS = CreateConVar( "timer_fps_style", "1", "How do we determine player's FPS in scroll modes? 0 = No limit. 1 = FPS can be more or equal to server's tickrate. 2 = FPS must be 300.", FCVAR_NOTIFY, true, 0.0, true, 2.0 );
 	
+	g_ConVar_SoldierRegenEnabled = CreateConVar( "timer_soldier_regen_enabled", "0", "0 = off, 1 = on", FCVAR_NOTIFY, true, 0.0, true, 1.0 );
 	// CONVAR HOOKS
 	
 	HookConVarChange( g_ConVar_PreSpeed, Event_ConVar_PreSpeed );
@@ -1076,6 +1080,7 @@ public void OnClientPutInServer( int client )
 	SDKHook( client, SDKHook_WeaponDropPost, Event_WeaponDropPost ); // No more weapon dropping.
 	SDKHook( client, SDKHook_SetTransmit, Event_SetTransmit_Client ); // Has to be hooked to everybody(?)
 	
+	
 #if defined RECORD
 	// Recording
 	g_bClientRecording[client] = false;
@@ -1310,7 +1315,7 @@ public void Event_PostThinkPost_Client( int client )
 			SetPlayerPractice( client, true );
 		}
 		// No prespeeding.
-		else if ( g_flPreSpeed > 0.0 && GetEntitySpeedSquared( client ) > g_flPreSpeedSq && GetEntityMoveType( client ) != MOVETYPE_NOCLIP )
+		else if ( g_iClientStyle[client] == STYLE_AUTOBHOP && g_flPreSpeed > 0.0 && GetEntitySpeedSquared( client ) > g_flPreSpeedSq && GetEntityMoveType( client ) != MOVETYPE_NOCLIP )
 		{
 			if ( !IsSpamming( client ) )
 			{
