@@ -248,14 +248,14 @@ public Action Event_OnTakeDamage_Client( int victim, int &attacker, int &inflict
 		TF2_RegeneratePlayer(victim);
 		return Plugin_Changed;
 	}
-	if ( IsFakeClient( attacker ) )
+	if ( attacker != 0 && victim != attacker )
 	{
 		flDamage = 0.0;
 		return Plugin_Changed;
 	}
 	if (GetConVarBool(g_ConVar_SoldierRegenEnabled) && g_iClientMode[victim] == 1)
 	{
-	TF2_RegeneratePlayer(victim);
+		TF2_RegeneratePlayer(victim);
 	}
 	return Plugin_Continue;
 }
