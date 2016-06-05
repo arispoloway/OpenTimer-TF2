@@ -67,6 +67,28 @@ stock void ShowKeyHintText( int client, int target )
 	
 	clients[0] = client;
 	Handle hMsg = StartMessageEx( g_UsrMsg_HudMsg, clients, 1 );*/
+	char szSpectators[100] = "";
+	char szName[15] = "";
+	for (int i = 1; i < MaxClients; i++){
+		if (!IsClientInGame(i) || !IsClientObserver(i))
+				continue;
+				
+		int iSpecMode = GetEntProp(i, Prop_Send, "m_iObserverMode");
+			
+			// The client isn't spectating any one person, so ignore them.
+		if (iSpecMode != 4 && iSpecMode != 5)
+				continue;
+			
+			// Find out who the client is spectating.
+		int iTarget = GetEntPropEnt(i, Prop_Send, "m_hObserverTarget");
+			
+			// Are they spectating our player?
+		if (iTarget == target)
+		{
+			GetClientName(i, szName, sizeof(szName));
+			Format(szSpectators, sizeof(szSpectators), "%s\n%s", szSpectators, szName);
+		}
+	}
 	
 	Handle hMsg = StartMessageOne( "KeyHintText", client );
 	
@@ -150,22 +172,8 @@ stock void ShowKeyHintText( int client, int target )
 			FormatEx( szText, sizeof( szText ), "I am a bot! :)" );
 #endif
 		}
-		/*static const float vec[2] = { 0.8, 0.05 };
-		static const int color[4] = { 255, 255, 255, 255 };
 		
-		PbSetInt( hMsg, "channel", 4 );
-		
-		PbSetVector2D( hMsg, "pos", vec );
-		PbSetColor( hMsg, "clr1", color );
-		PbSetColor( hMsg, "clr2", color );
-		PbSetInt( hMsg, "effect", 0 );
-		
-		PbSetFloat( hMsg, "fade_in_time", 0.0 );
-		PbSetFloat( hMsg, "fade_out_time", 0.0 );
-		PbSetFloat( hMsg, "hold_time", 0.1 );
-		PbSetFloat( hMsg, "fx_time", 0.0 );
-		
-		PbSetString( hMsg, "text", szText );*/
+		Format(szText, sizeof(szText), "%s \nSpectators:%s", szText, szSpectators);
 		
 		BfWriteByte( hMsg, 1 );
 		BfWriteString( hMsg, szText );
