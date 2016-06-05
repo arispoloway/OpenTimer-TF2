@@ -1588,6 +1588,7 @@ stock void TeleportPlayerToStart( int client )
 	
 	if(g_fClientRespawnPosition[client][0] != 0){
 		TeleportEntity(client, g_fClientRespawnPosition[client], g_fClientRespawnAngles[client], g_vecNull);
+		SetEntPropVector(client, Prop_Send, "m_vecVelocity", g_vecNull);
 		ChangeClientState(client, STATE_NOT_MAIN);
 #if defined RECORD
 		g_bClientRecording[client] = false;
