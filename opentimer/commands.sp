@@ -147,6 +147,34 @@ public Action Command_Spawn( int client, int args )
 	
 	return Plugin_Handled;
 }
+public Action Command_Set_Start(int client, int args)
+{
+	if (!client) return Plugin_Handled;
+	if (!IsPlayerAlive(client)) return Plugin_Handled;
+	
+	if (!(GetEntityFlags(client) & FL_ONGROUND)){
+		PRINTCHAT( client, CHAT_PREFIX..."This command can only be used on the ground." );
+		return Plugin_Handled;
+	}
+	GetEntPropVector(client, Prop_Send, "m_vecOrigin", g_fClientRespawnPosition[client]);
+	GetClientAbsAngles(client, g_fClientRespawnAngles[client]);
+	PRINTCHAT( client, CHAT_PREFIX..."Starting position set. Use /clearstart to return to the default starting point." );
+	return Plugin_Handled;
+
+}
+public Action Command_Clear_Start(int client, int args){
+	if (!client) return Plugin_Handled;
+	g_fClientRespawnPosition[client][0] = 0.0;
+	g_fClientRespawnPosition[client][1] = 0.0;
+	g_fClientRespawnPosition[client][2] = 0.0;
+	
+	g_fClientRespawnAngles[client][0] = 0.0;
+	g_fClientRespawnAngles[client][1] = 0.0;
+	g_fClientRespawnAngles[client][2] = 0.0;
+	
+	PRINTCHAT( client, CHAT_PREFIX..."Starting position reset." );
+	return Plugin_Handled;
+}
 
 public Action Command_Spectate( int client, int args )
 {

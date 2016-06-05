@@ -363,6 +363,8 @@ ArrayList g_hClientCPData[MAXPLAYERS];
 // Misc player stuff.
 int g_iClientId[MAXPLAYERS]; // IMPORTANT!!
 
+float g_fClientRespawnPosition[MAXPLAYERS][3];
+float g_fClientRespawnAngles[MAXPLAYERS][3];
 float g_fClientLastConnectTime[MAXPLAYERS];
 bool g_bClientSpeedometerEnabled[MAXPLAYERS];
 int g_fClientFreestyleFlags[MAXPLAYERS];
@@ -586,6 +588,9 @@ public void OnPluginStart()
 	RegConsoleCmd( "sm_start", Command_Spawn );
 	RegConsoleCmd( "sm_teleport", Command_Spawn );
 	RegConsoleCmd( "sm_tele", Command_Spawn );
+	
+	//RegConsoleCmd("sm_setstart", Command_Set_Start);
+	//RegConsoleCmd("sm_clearstart", Command_Clear_Start);
 	
 	
 	// SPEC
@@ -851,6 +856,7 @@ public void OnPluginStart()
 	//LoadTranslations( "opentimer.phrases" );
 	
 	DB_InitializeDatabase();
+	//OnMapStart();
 }
 
 public void OnConfigsExecuted()
@@ -1008,6 +1014,15 @@ public void OnMapStart()
 
 	DetermineSpawns();
 	LockCPs();
+	
+	for (int q = 0; q < MAXPLAYERS; q++){
+		for (int j = 0; j < 3; j++){
+			g_fClientRespawnPosition[q][j] = 0.0;
+			g_fClientRespawnAngles[q][j] = 0.0;
+		}
+	}
+	
+	
 	
 	CreateTimer( 3.0, Timer_OnMapStart_Delay, _, TIMER_FLAG_NO_MAPCHANGE );
 }
@@ -1301,6 +1316,11 @@ public void Event_PostThinkPost_Client( int client )
 	}
 	
 	// We then compare that:
+	
+	//if ( g_iClientState[client] == STATE_START && bInsideZone[client][INSIDE_START] ){
+	//	SetPlayerPractice( client, false );
+	//}
+	
 	if ( g_iClientState[client] == STATE_START && !bInsideZone[client][INSIDE_START] )
 	{
 		// We were previously in start but we're not anymore.
@@ -1543,6 +1563,14 @@ stock void TeleportPlayerToStart( int client )
 {
 	g_flClientStartTime[client] = TIME_INVALID;
 	ChangeClientState( client, STATE_START );
+	
+	
+	if(g_fClientRespawnPosition[client][0] != 0){
+		TeleportEntity(client, g_fClientRespawnPosition[client], g_fClientRespawnAngles[client], g_vecNull);
+		//SetPlayerPractice(client, true);
+		return;
+	}
+	
 	
 	if ( g_bIsLoaded[ g_iClientRun[client] ] )
 	{
