@@ -163,7 +163,7 @@ stock void ShowKeyHintText( int client, int target )
 			}
 			else
 			{*/
-			FormatEx( szText, sizeof( szText ), "Name: %s\nTime: %s",
+			FormatEx( szText, sizeof( szText ), "Name: %s\nTime: \n%s",
 				g_szRecName[run][style][mode],
 				szTime);
 			//}
