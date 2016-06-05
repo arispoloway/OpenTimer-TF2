@@ -233,5 +233,33 @@ stock int NumberOfActivePlayers(int mode, int style){
 	for ( int i = 1; i <= MaxClients; i++ )
 		if (IsClientConnected(i) && !IsFakeClient(i) && !(TF2_GetClientTeam(i) == TFTeam_Spectator) && g_iClientMode[i] == mode && g_iClientStyle[i] == style) count++;
 	return count;
-           
+}
+
+stock void SetBhopStatus(int client){
+
+	switch ( g_iClientStyle[client] )
+	{
+		case STYLE_AUTOBHOP :
+		{
+			if (!FC_BhopStatus(client))
+			{
+				FC_SetBhop(client, true, true, 1.0, 1.0);
+			}
+		}
+		case STYLE_CROUCHED :
+		{
+			if (FC_BhopStatus(client))
+			{
+				FC_SetBhop(client, false, false, 1.0, 1.0);
+			}
+		}
+		case STYLE_NORMAL :
+		{
+			if (FC_BhopStatus(client))
+			{
+				FC_SetBhop(client, false, false, 1.0, 1.0);
+			}
+		}
+	}
+
 }

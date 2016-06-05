@@ -21,7 +21,7 @@ public Action OnPlayerRunCmd(	int client,
 	{
 		bool bOnGround = ( GetEntityFlags( client ) & FL_ONGROUND ) ? true : false;
 		
-		MoveType iMoveType = GetEntityMoveType( client );
+		//MoveType iMoveType = GetEntityMoveType( client );
 		
 		if ( bOnGround )
 		{
@@ -124,43 +124,17 @@ public Action OnPlayerRunCmd(	int client,
 		// MODES
 		// No longer check with buttons.
 		// Ignore ladders and noclip.
-		if ( iMoveType == MOVETYPE_WALK || ( !g_bIgnoreLadderStyle && iMoveType == MOVETYPE_LADDER ) )
-		{
-			bool bModified;
-			
-			switch ( g_iClientStyle[client] )
+		//if ( iMoveType == MOVETYPE_WALK || ( !g_bIgnoreLadderStyle && iMoveType == MOVETYPE_LADDER ) )
+		//{
+		//}
+		
+		switch (g_iClientStyle[client]){
+			case STYLE_CROUCHED:
 			{
-				case STYLE_AUTOBHOP :
-				{
-					if (!FC_BhopStatus(client))
-					{
-						FC_SetBhop(client, true, true, 1.0, 1.0);
-					}
-				}
-				case STYLE_CROUCHED :
-				{
-					buttons |= IN_DUCK;
-					if (FC_BhopStatus(client))
-					{
-						FC_SetBhop(client, false, false, 1.0, 1.0);
-					}
-				}
-				case STYLE_NORMAL :
-				{
-					if (FC_BhopStatus(client))
-					{
-						FC_SetBhop(client, false, false, 1.0, 1.0);
-					}
-				}
-			}
-			
-			if ( bModified )
-			{
-				buttons = 0;
-				vel[FWD] = 0.0;
-				vel[SIDE] = 0.0;
+				buttons |= IN_DUCK;
 			}
 		}
+			
 
 		
 		return Plugin_Continue;

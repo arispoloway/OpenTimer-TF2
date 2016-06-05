@@ -1383,6 +1383,7 @@ public void Event_PostThinkPost_Client( int client )
 #if defined RECORD
 		GhostBotIfAvailable(client);
 #endif
+	SetBhopStatus(client);
 		
 #endif
 	}
@@ -1586,7 +1587,7 @@ stock void SetPlayerStyle( int client, int reqstyle )
 	SetClientPredictedAirAcceleration( client, flNewAirAccel );
 	
 	PRINTCHATV( client, CHAT_PREFIX..."Your air acceleration is now "...CLR_TEAM..."%.0f"...CLR_TEXT..."!", flNewAirAccel );
-	
+	SetBhopStatus(client);
 	UpdateScoreboard( client );
 }
 
