@@ -4,13 +4,16 @@ CREATE TABLE IF NOT EXISTS tempbounds (map VARCHAR(32), zone INT, id INT, min0 R
 INSERT INTO mapbounds (map, zone, id, min0, min1, min2, max0, max1, max2) SELECT 'bhop_name', zone, id, min0, min1, min2, max0, max1, max2 FROM bhop_name
 INSERT INTO maprecs (map, steamid, run, style, name, time, jumps, strafes) SELECT 'bhop_name', steamid, run, style, name, time, jumps, strafes FROM rec_bhop_name
 */
-#define DB_NAME				"opentimer"
-#define TABLE_PLYDATA		"plydata"
-#define TABLE_RECORDS		"maprecs"
-#define TABLE_ZONES			"mapbounds"
-#define TABLE_CP			"mapcps"
-#define TABLE_CP_RECORDS	"mapcprecs" // Save record checkpoint times only.
-#define TABLE_PLYCHEAT		"plycheatdata"
+#define DB_NAME				 "opentimer"
+#define TABLE_PLYDATA		 "plydata"
+#define TABLE_RECORDS		 "maprecs"
+#define TABLE_ZONES			 "mapbounds"
+#define TABLE_CP			 "mapcps"
+#define TABLE_CP_RECORDS	 "mapcprecs" // Save record checkpoint times only.
+#define TABLE_PLYCHEAT		 "plycheatdata"
+#define TABLE_NAMES          "steamidnames"
+#define TABLE_COURSE_ZONES   "coursezones"
+#define TABLE_COURSE_RECORDS "courserecords"
 
 Handle g_hDatabase;
 
@@ -88,6 +91,12 @@ stock void DB_InitializeDatabase()
 		
 	SQL_TQuery( g_hDatabase, Threaded_Empty,
 		"CREATE TABLE IF NOT EXISTS "...TABLE_PLYCHEAT..." (uid INT NOT NULL, run INT NOT NULL, style INT NOT NULL, mode INT NOT NULL, map VARCHAR(32) NOT NULL, reason INT NOT NULL, dt DATE NOT NULL, penalty INT NOT NULL, data NOT NULL)", _, DBPrio_High );
+		
+	SQL_TQuery( g_hDatabase, Threaded_Empty, 
+		"CREATE TABLE IF NOT EXISTS "...TABLE_COURSE_ZONES..."(map VARCHAR(32) NOT NULL, type INT NOT NULL, course INT NOT NULL, min0 REAL NOT NULL, min1 REAL NOT NULL, min2 REAL NOT NULL, max0 REAL NOT NULL, max1 REAL NOT NULL, max2 REAL NOT NULL, PRIMARY KEY(map, type, course))", _, DBPrio_High);
+		
+	SQL_TQuery( g_hDatabase, Threaded_Empty, 
+		"CREATE TABLE IF NOT EXISTS "...TABLE_COURSE_RECORDS..."(map VARCHAR(32) NOT NULL, uid text NOT NULL, course INT NOT NULL, style INT NOT NULL, mode INT NOT NULL, time REAL NOT NULL, PRIMARY KEY (map, uid, run, style, mode))", _, DBPrio_High);
 }
 
 stock bool DB_LogCheat( int client, CheatReason reason, int penalty, int data )

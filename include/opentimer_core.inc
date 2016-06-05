@@ -19,7 +19,8 @@ enum PlayerState
 {
 	STATE_START = 0,
 	STATE_RUNNING,
-	STATE_END
+	STATE_END,
+	STATE_NOT_MAIN
 };
 
 enum
