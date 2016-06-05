@@ -377,6 +377,16 @@ float g_flClientWarning[MAXPLAYERS]; // Used for anti-spam.
 	bool g_bClientHoldingJump[MAXPLAYERS];
 #endif
 
+
+//Course stuff 
+#define MAX_COURSES 10
+
+float g_fCourseStartTime[MAXPLAYERS];
+int g_iCourse[MAXPLAYERS];
+float g_vecCourseMaxs[MAX_COURSES][3];
+float g_vecCourseMins[MAX_COURSES][3];
+
+
 enum PlayerResumeData
 {
 	RESUME_RUN = 0,
@@ -589,8 +599,8 @@ public void OnPluginStart()
 	RegConsoleCmd( "sm_teleport", Command_Spawn );
 	RegConsoleCmd( "sm_tele", Command_Spawn );
 	
-	//RegConsoleCmd("sm_setstart", Command_Set_Start);
-	//RegConsoleCmd("sm_clearstart", Command_Clear_Start);
+	RegConsoleCmd("sm_setstart", Command_Set_Start);
+	RegConsoleCmd("sm_clearstart", Command_Clear_Start);
 	
 	
 	// SPEC
@@ -1020,6 +1030,14 @@ public void OnMapStart()
 			g_fClientRespawnPosition[q][j] = 0.0;
 			g_fClientRespawnAngles[q][j] = 0.0;
 		}
+		g_iCourse[q] = 0;
+	}
+	
+	for (int q = 0; q < MAX_COURSES; q++){
+		for (int j = 0; j < 3; j++){
+			g_vecCourseMins[q][j] = 0.0;
+			g_vecCourseMaxs[q][j] = 0.0;
+		}
 	}
 	
 	
@@ -1320,6 +1338,9 @@ public void Event_PostThinkPost_Client( int client )
 	//if ( g_iClientState[client] == STATE_START && bInsideZone[client][INSIDE_START] ){
 	//	SetPlayerPractice( client, false );
 	//}
+	if( g_iClientState[client] == STATE_NOT_MAIN && bInsideZone[client][INSIDE_START] ){
+		ChangeClientState( client, STATE_RUNNING );
+	}
 	
 	if ( g_iClientState[client] == STATE_START && !bInsideZone[client][INSIDE_START] )
 	{
@@ -1567,7 +1588,25 @@ stock void TeleportPlayerToStart( int client )
 	
 	if(g_fClientRespawnPosition[client][0] != 0){
 		TeleportEntity(client, g_fClientRespawnPosition[client], g_fClientRespawnAngles[client], g_vecNull);
-		//SetPlayerPractice(client, true);
+		ChangeClientState(client, STATE_NOT_MAIN);
+#if defined RECORD
+		g_bClientRecording[client] = false;
+		
+		if ( g_hClientRec[client] != null )
+		{
+			delete g_hClientRec[client];
+			g_hClientRec[client] = null;
+		}
+#endif
+		
+		if ( g_hClientPracData[client] != null )
+		{
+			delete g_hClientPracData[client];
+			g_hClientPracData[client] = null;
+		}
+		
+		g_iClientCurSave[client] = INVALID_SAVE;
+		g_iClientLastUsedSave[client] = INVALID_SAVE;
 		return;
 	}
 	

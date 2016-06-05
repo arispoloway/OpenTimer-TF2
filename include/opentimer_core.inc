@@ -23,6 +23,14 @@ enum PlayerState
 	STATE_NOT_MAIN
 };
 
+enum PlayerCourseState
+{
+	STATE_COURSE_START,
+	STATE_COURSE_RUNNING,
+	STATE_COURSE_END,
+	STATE_NOT_IN_COURSE
+}
+
 enum
 {
 	RUN_INVALID = -1,

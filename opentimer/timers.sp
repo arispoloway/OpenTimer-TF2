@@ -117,6 +117,8 @@ public Action Timer_HudTimer( Handle hTimer )
             {
                 // We are in the start zone.
                 Format(hintOutput, 256, "Starting Zone\n%s", g_szRunName[NAME_LONG][ g_iClientRun[target] ]);
+            } else if(g_iClientState[target] == STATE_NOT_MAIN){
+            	Format(hintOutput, 256, "");
             } else {
            
 	            static float flSeconds;
