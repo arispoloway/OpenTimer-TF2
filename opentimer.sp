@@ -1498,6 +1498,12 @@ public void Event_PostThinkPost_Client( int client )
 			}
 		}
 	}
+	
+	//COURSE LOGIC
+	
+	
+	
+	
 }
 
 stock void ChangeClientState( int client, PlayerState state )
@@ -1587,8 +1593,8 @@ stock void TeleportPlayerToStart( int client )
 	
 	
 	if(g_fClientRespawnPosition[client][0] != 0){
-		TeleportEntity(client, g_fClientRespawnPosition[client], g_fClientRespawnAngles[client], g_vecNull);
-		SetEntPropVector(client, Prop_Send, "m_vecVelocity", g_vecNull);
+		TeleportEntity(client, g_fClientRespawnPosition[client], g_fClientRespawnAngles[client], NULL_VECTOR);
+		SetEntPropVector(client, Prop_Data, "m_vecVelocity", g_vecNull);
 		ChangeClientState(client, STATE_NOT_MAIN);
 #if defined RECORD
 		g_bClientRecording[client] = false;
