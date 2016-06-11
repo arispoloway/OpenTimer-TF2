@@ -176,7 +176,8 @@ public Action Timer_HudTimer( Handle hTimer )
 	                szBestTime);
 	        }
 	        
-	        if(g_bClientSpeedometerEnabled[client]){
+	        if(g_bClientSpeedometerEnabled[client])
+	        {
       		 	Format(hintOutput, 256, "%s\n \nSpeed\n%.0f", hintOutput, GetEntitySpeed(target));
       		}
       		PrintHintText( client, hintOutput);

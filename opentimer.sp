@@ -186,6 +186,10 @@
 
 #define MATH_PI					3.14159
 
+//Maximum number of records to save in db (ie: top 10,000 runs)
+//NYI: Currently only used for array initialization, will not actually restrict DB record count
+#define MAX_DB_RECORDS			30000
+
 // Used for the block and freestyle zones.
 // Entities are required to have some kind of model. Of course, we don't render the vending machine, lol.
 // Note: this model is in both CSS and CS:GO!
@@ -427,7 +431,6 @@ int g_iClientFOV[MAXPLAYERS] = { 90, ... };
 int g_fClientHideFlags[MAXPLAYERS];
 int g_iClientFinishes[MAXPLAYERS];
 
-
 // Other
 float g_flTickRate;
 char g_szCurrentMap[MAX_MAP_NAME];
@@ -437,6 +440,13 @@ float g_flMapBestTime[NUM_RUNS][NUM_STYLES][NUM_MODES];
 int g_iBeam;
 TFTeam g_iPreferredTeam = TFTeam_Spectator;
 
+float g_iMapFinishes[NUM_RUNS][NUM_STYLES][NUM_MODES]; //TODO:Check num_recs
+
+int g_iClientPoints[MAX_DB_RECORDS];
+
+//id, time, class
+float g_flMapStartRankings[NUM_RUNS][MAX_DB_RECORDS][3];
+float g_flMapDuringRankings[NUM_RUNS][MAX_DB_RECORDS][3];
 
 // Voting stuff
 #if defined VOTING
@@ -539,6 +549,7 @@ Handle g_hForward_Timer_OnStateChanged;
 #include "opentimer/timers.sp"
 #include "opentimer/menus.sp"
 #include "opentimer/menus_admin.sp"
+#include "opentimer/points.sp"
 
 public Plugin myinfo = // Note: must be 'myinfo'. Compiler accepts everything but only that works.
 {
@@ -857,6 +868,21 @@ public void OnPluginStart()
 	
 	DB_InitializeDatabase();
 	//OnMapStart();
+	
+	//Fill record arrays with blank info
+	
+	for (int i = 0; i < NUM_RUNS;i++)
+	{
+		for (int j = 0; j < MAX_DB_RECORDS;j++)
+		{					
+			g_flMapStartRankings[i][j][0]=-1;
+			g_flMapStartRankings[i][j][1]=-1;
+			g_flMapStartRankings[i][j][2]=-1;
+			g_flMapDuringRankings[i][j][0]=-1;
+			g_flMapDuringRankings[i][j][1]=-1;
+			g_flMapDuringRankings[i][j][2]=-1;
+		}
+	}
 }
 
 public void OnConfigsExecuted()
@@ -1183,6 +1209,7 @@ public void OnClientPutInServer( int client )
 	g_iClientFOV[client] = 90;
 	g_fClientHideFlags[client] = 0;
 	g_iClientFinishes[client] = 0;
+	g_iClientPoints[client] = 0;
 	
 	g_flClientWarning[client] = TIME_INVALID;
 	g_flClientNextMsg[client] = TIME_INVALID;

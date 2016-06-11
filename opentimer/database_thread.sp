@@ -643,6 +643,10 @@ public void Threaded_Init_Zones( Handle hOwner, Handle hQuery, const char[] szEr
 		FormatEx( szQuery, sizeof( szQuery ), "SELECT run, id, min0, min1, min2, max0, max1, max2 FROM "...TABLE_CP..." WHERE map = '%s'", g_szCurrentMap );
 		// SELECT run, id, min0, min1, min2, max0, max1, max2, rec_time FROM mapcprecs NATURAL JOIN mapcps WHERE map = 'bhop_gottagofast' ORDER BY run, id
 		SQL_TQuery( g_hDatabase, Threaded_Init_CPs, szQuery, _, DBPrio_High );
+		
+		FormatEx( szQuery, sizeof( szQuery ), "SELECT run, style, mode, time, uid FROM "...TABLE_RECORDS..." NATURAL JOIN "...TABLE_PLYDATA..." WHERE map = '%s' ORDER BY MIN(time)", g_szCurrentMap );
+		//SELECT run, style, mode, time, uid FROM maprecs NATURAL JOIN plydata WHERE map = 'jump_tholos' ORDER BY MIN(time)
+		SQL_TQuery( g_hDatabase, Threaded_Init_RankArrays, szQuery, _, DBPrio_High );
 	}
 	
 	CheckZones();
@@ -823,5 +827,87 @@ public void Threaded_Empty( Handle hOwner, Handle hQuery, const char[] szError, 
 	if ( hQuery == null )
 	{
 		DB_LogError( "Saving data.", client, "Couldn't save data." );
+	}
+}
+
+public void Threaded_Init_RankArrays( Handle hOwner, Handle hQuery, const char[] szError, any data )
+{
+	if ( hQuery == null )
+	{
+		DB_LogError( "Unable to retrieve map records!" );
+		
+		return;
+	}
+	
+	if ( !SQL_GetRowCount( hQuery ) ) return;
+	
+	
+	// More readible this way.
+	int		iRun;
+	int		iStyle;
+	int		iMode;
+	int		id;
+	int 	counter = 0;
+	
+	while ( SQL_FetchRow( hQuery ) )
+	{
+		iRun = SQL_FetchInt( hQuery, 0 );
+		iStyle = SQL_FetchInt( hQuery, 1 );
+		iMode = SQL_FetchInt( hQuery, 2 );
+		id = SQL_FetchInt( hQuery, 4 );
+		
+		//Only giving points for normal runs
+		if (iStyle == STYLE_NORMAL)
+		{
+			g_flMapStartRankings[iRun][counter][0] = id;
+			g_flMapDuringRankings[iRun][counter][0] = id;	
+			
+			g_flMapStartRankings[iRun][counter][1] = SQL_FetchFloat( hQuery, 3 );
+			g_flMapDuringRankings[iRun][counter][1] = SQL_FetchFloat( hQuery, 3 );
+			
+			g_flMapStartRankings[iRun][counter][2] = iMode;
+			g_flMapDuringRankings[iRun][counter][2] = iMode;
+		
+			counter++;		
+		}
+	}
+}
+
+public void Threaded_Update_RankArray( Handle hOwner, Handle hQuery, const char[] szError, any data )
+{
+	if ( hQuery == null )
+	{
+		DB_LogError( "Unable to retrieve map records!" );
+		
+		return;
+	}
+	
+	if ( !SQL_GetRowCount( hQuery ) ) return;
+	
+	
+	// More readible this way.
+	int		iRun;
+	int		iStyle;
+	int		iMode;
+	int		id;
+	int		counter=0;
+	
+	while ( SQL_FetchRow( hQuery ) )
+	{
+		iRun = SQL_FetchInt( hQuery, 0 );
+		iStyle = SQL_FetchInt( hQuery, 1 );
+		iMode = SQL_FetchInt( hQuery, 2 );
+		id = SQL_FetchInt( hQuery, 4 );
+		
+		if (iStyle == STYLE_NORMAL)
+		{
+			g_flMapDuringRankings[iRun][counter][0] = id;	
+			
+			g_flMapDuringRankings[iRun][counter][1] = SQL_FetchFloat( hQuery, 3 );
+			
+			g_flMapDuringRankings[iRun][counter][2] = iMode;
+			
+			counter++;	
+		}
 	}
 }

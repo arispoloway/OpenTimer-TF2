@@ -75,7 +75,7 @@ stock void DB_InitializeDatabase()
 	
 	// NOTE: Primary key cannot be 'INT'.
 	SQL_TQuery( g_hDatabase, Threaded_Empty,
-		"CREATE TABLE IF NOT EXISTS "...TABLE_PLYDATA..." (uid INTEGER PRIMARY KEY, steamid VARCHAR(64) NOT NULL, name VARCHAR(32) NOT NULL DEFAULT 'N/A', fov INT NOT NULL DEFAULT 90, hideflags INT NOT NULL DEFAULT 0, prefstyle INT NOT NULL DEFAULT 0, prefmode INT NOT NULL DEFAULT 0, finishes INT NOT NULL DEFAULT 0, records INT NOT NULL DEFAULT 0)", _, DBPrio_High );
+		"CREATE TABLE IF NOT EXISTS "...TABLE_PLYDATA..." (uid INTEGER PRIMARY KEY, steamid VARCHAR(64) NOT NULL, name VARCHAR(32) NOT NULL DEFAULT 'N/A', fov INT NOT NULL DEFAULT 90, hideflags INT NOT NULL DEFAULT 0, prefstyle INT NOT NULL DEFAULT 0, prefmode INT NOT NULL DEFAULT 0, finishes INT NOT NULL DEFAULT 0, records INT NOT NULL DEFAULT 0, points INT NOT NULL DEFAULT 0)", _, DBPrio_High );
 	
 	SQL_TQuery( g_hDatabase, Threaded_Empty,
 		"CREATE TABLE IF NOT EXISTS "...TABLE_ZONES..." (map VARCHAR(32) NOT NULL, zone INT NOT NULL, id INT NOT NULL DEFAULT 0, min0 REAL NOT NULL, min1 REAL NOT NULL, min2 REAL NOT NULL, max0 REAL NOT NULL, max1 REAL NOT NULL, max2 REAL NOT NULL, flags INT NOT NULL DEFAULT 0, PRIMARY KEY(map, zone, id))", _, DBPrio_High );
@@ -318,7 +318,8 @@ stock bool DB_SaveClientRecord( int client, float flNewTime )
 	static int style;
 	static int mode;
 	static float flOldBestTime;
-	
+	static bool bFirstTime = true;
+		
 	run = g_iClientRun[client];
 	style = g_iClientStyle[client];
 	mode = getClass(client);
@@ -327,9 +328,7 @@ stock bool DB_SaveClientRecord( int client, float flNewTime )
 	static char szQuery[256];
 	// First time beating or better time than last time.
 	if ( flOldBestTime <= TIME_INVALID || flNewTime < flOldBestTime )
-	{
-		// Insert new if we haven't beaten this one yet. Replace otherwise.
-		
+	{		
 		// INSERT INTO maprecs VALUES ('bhop_gottagofast', 2, 0, 0, 1, 1337.000, 444, 333)
 		FormatEx( szQuery, sizeof( szQuery ), "INSERT OR REPLACE INTO "...TABLE_RECORDS..." VALUES ('%s', %i, %i, %i, %i, %.3f)",
 			g_szCurrentMap,
@@ -344,14 +343,15 @@ stock bool DB_SaveClientRecord( int client, float flNewTime )
 		// Did we finish this map for the first time in this mode?
 		if ( run == RUN_MAIN )
 		{
-			bool bFirstTime = true;
+			bFirstTime = true;
 			
-			for ( int i = 0; i < NUM_STYLES; i++ )
+			/*for ( int i = 0; i < NUM_STYLES; i++ )
 				if ( g_flClientBestTime[client][RUN_MAIN][i][mode] > TIME_INVALID )
 				{
 					bFirstTime = false;
 					break;
 				}
+			*/
 			
 			// Beat it for the first time!
 			if ( bFirstTime )
@@ -449,6 +449,87 @@ stock bool DB_SaveClientRecord( int client, float flNewTime )
 #endif
 	}
 	
+	//Now we need to get all current times, so that we can calculate point spreads
+	FormatEx( szQuery, sizeof( szQuery ), "SELECT run, style, mode, time, uid FROM "...TABLE_RECORDS..." NATURAL JOIN "...TABLE_PLYDATA..." WHERE map = '%s' ORDER BY MIN(time)", g_szCurrentMap );
+	//SELECT run, style, mode, time, uid FROM maprecs NATURAL JOIN plydata WHERE map = 'jump_tholos' ORDER BY MIN(time)
+	SQL_TQuery( g_hDatabase, Threaded_Update_RankArray, szQuery, _, DBPrio_High );
+		
+	//Find user's current record in the array and remove it
+	for (int i=0;i<MAX_DB_RECORDS; i++)
+	{
+		if (g_iClientId[client] == g_flMapStartRankings[run][i][0] && flNewTime == g_flMapStartRankings[run][i][1] && mode == g_flMapStartRankings[run][i][2])
+		{
+			PrintToChatAll("Found user's current record... removing it");
+			
+			//Loop from i until end of array setting i=i+1
+			for (int j = i; j < (MAX_DB_RECORDS - (i + 1));j++)
+			{
+				if (g_flMapStartRankings[run][j+1][1] <= TIME_INVALID)
+				{
+					break;
+				}
+				//We need to use both of these for comparisons after this, and lose no important data by
+				//setting them both to the "users old time removed" state
+				g_flMapStartRankings[run][j][0] = g_flMapStartRankings[run][j+1][0];
+				g_flMapStartRankings[run][j][1] = g_flMapStartRankings[run][j+1][1];
+				g_flMapStartRankings[run][j][2] = g_flMapStartRankings[run][j+1][2];
+				g_flMapDuringRankings[run][j][0] = g_flMapStartRankings[run][j+1][0];
+				g_flMapDuringRankings[run][j][1] = g_flMapStartRankings[run][j+1][1];
+				g_flMapDuringRankings[run][j][2] = g_flMapStartRankings[run][j+1][2];
+			}
+			
+			break;
+		}
+		
+		if (g_flMapStartRankings[run][i][1] <= TIME_INVALID)
+		{
+			break;
+		}
+	}
+		
+	//Find where this new time will be in the list
+	for (int i=0;i<MAX_DB_RECORDS; i++)
+	{
+		if (g_flMapStartRankings[run][i][1] <= TIME_INVALID)
+		{
+			break;
+		}
+
+		if (flNewTime > g_flMapStartRankings[run][i][1])
+		{
+			PrintToChatAll("Found location in array for current run at %i", i);
+			
+			//Since we've passed where our time would fit, i-1 is where it goes
+			g_flMapDuringRankings[run][i - 1][0] = g_iClientId[client];
+			g_flMapDuringRankings[run][i - 1][1] = flNewTime;
+			g_flMapDuringRankings[run][i - 1][2] = mode;
+			
+			//Now we must shift the array down by one			
+			for(int j = (i + 1); j < MAX_DB_RECORDS;j++)
+			{
+				//We set i to be where the new run is placed
+				//We start this loop of j one step later in the array
+				//From here, we want to start setting these to the elements one previous in the old array
+				//So we set during[j] = start[j-1], as start is our un-edited array
+				g_flMapDuringRankings[run][j][0] = g_flMapStartRankings[run][j-1][0];
+				g_flMapDuringRankings[run][j][1] = g_flMapStartRankings[run][j-1][1];
+				g_flMapDuringRankings[run][j][2] = g_flMapStartRankings[run][j-1][2];
+				
+				if (g_flMapStartRankings[run][j][1] <= TIME_INVALID)
+				{
+					break;
+				}
+			}
+			
+			break;
+		}
+	}
+	
+	//Set start=during?
+	
+	//Calculate point totals
+	UpdatePointTotals(client, szName, run, style, mode, flNewTime, flOldBestTime, flPrevMapBest);
+	
 	DoRecordNotification( client, szName, run, style, mode, flNewTime, flOldBestTime, flPrevMapBest );
 	UpdateScoreboard( client );
 	
@@ -458,7 +539,6 @@ stock bool DB_SaveClientRecord( int client, float flNewTime )
 stock bool DB_SaveClientData( int client )
 {
 	if ( !g_iClientId[client] ) return false;
-	
 	
 	static char szSteam[MAX_ID_LENGTH];
 	if ( !GetClientSteam( client, szSteam, sizeof( szSteam ) ) ) return false;
@@ -471,14 +551,15 @@ stock bool DB_SaveClientData( int client )
 	
 	if ( !SQL_EscapeString( g_hDatabase, szName, szName, sizeof( szName ) ) )
 		strcopy( szName, sizeof( szName ), "N/A" );
-	
+		
 	static char szQuery[192];
-	FormatEx( szQuery, sizeof( szQuery ), "UPDATE "...TABLE_PLYDATA..." SET name = '%s', fov = %i, hideflags = %i, prefstyle = %i, finishes = %i WHERE steamid = '%s'",
+	FormatEx( szQuery, sizeof( szQuery ), "UPDATE "...TABLE_PLYDATA..." SET name = '%s', fov = %i, hideflags = %i, prefstyle = %i, finishes = %i, points = %i WHERE steamid = '%s'",
 		szName,
 		g_iClientFOV[client],
 		g_fClientHideFlags[client],
 		g_iClientStyle[client],
 		g_iClientFinishes[client],
+		g_iClientPoints[client],
 		szSteam );
 	
 	SQL_TQuery( g_hDatabase, Threaded_Empty, szQuery, client, DBPrio_Normal );
