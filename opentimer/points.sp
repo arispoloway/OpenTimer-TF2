@@ -3,6 +3,7 @@ float EULERS_NUMBER = 2.71828182845904523536028747135266249775724709369995;
 //We run this function any time a user finishes either their first run, or a run that breaks a PB/record
 public void UpdatePointTotals(int client, char[] szName, int run, int style, int mode, float flNewTime, float flOldBestTime, float flPrevMapBest)
 {	
+	//SpamChatShit();
 	//First check to see if user takes WR
 	if ((flNewTime < flPrevMapBest) && !(flNewTime <= TIME_INVALID))
 	{	
@@ -22,12 +23,25 @@ public void UpdatePointTotals(int client, char[] szName, int run, int style, int
 	}
 }
 
+public void SpamChatShit()
+{
+	for (int i = 0; i < MAX_DB_RECORDS;i++)
+	{
+		PrintToChatAll("Entry %i, time is %f", i, g_flMapDuringRankings[0][i][1]);
+		
+		if (g_flMapDuringRankings[0][i][1] <= TIME_INVALID)
+		{
+			break;
+		}
+	}
+}
+
 public int getCurrentCountByRun (int run)
 {
 	int ranks = 0;
 	
 	//Loop through max array size
-	for (int i = 0; i <= MAX_DB_RECORDS;i++)
+	for (int i = 0; i < MAX_DB_RECORDS;i++)
 	{
 		//If it's a valid time, we add as much
 		if (!g_flMapDuringRankings[run][i][1] <= TIME_INVALID)

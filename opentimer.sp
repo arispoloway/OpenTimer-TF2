@@ -550,6 +550,7 @@ Handle g_hForward_Timer_OnStateChanged;
 #include "opentimer/menus.sp"
 #include "opentimer/menus_admin.sp"
 #include "opentimer/points.sp"
+#include "opentimer/bounceblocker.sp"
 
 public Plugin myinfo = // Note: must be 'myinfo'. Compiler accepts everything but only that works.
 {
@@ -1226,6 +1227,9 @@ public void OnClientPutInServer( int client )
 	// These are right below us.
 	SDKHook( client, SDKHook_PostThinkPost, Event_PostThinkPost_Client );
 	SDKHook( client, SDKHook_PreThinkPost, Event_PreThinkPost_Client );
+	
+	//KICK THOSE CHEATERS
+	BlockBounces(client);
 }
 
 public void OnClientPostAdminCheck( int client )

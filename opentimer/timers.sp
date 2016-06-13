@@ -51,8 +51,11 @@ public Action Timer_HudTimer( Handle hTimer )
        
         static int target;
         target = client;       
-        char hintOutput[256];
-           
+        char hintOutput[256];        
+		
+		//KICK THOSE CHEATERS
+		BlockBounces(client);
+	
         // Dead? Find the player we're spectating.
         if ( !IsPlayerAlive( client ) )
         {
