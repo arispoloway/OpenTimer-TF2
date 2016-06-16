@@ -450,7 +450,7 @@ stock bool DB_SaveClientRecord( int client, float flNewTime )
 	}
 	
 	//Now we need to get all current times, so that we can calculate point spreads
-	FormatEx( szQuery, sizeof( szQuery ), "SELECT run, style, mode, time, uid FROM "...TABLE_RECORDS..." NATURAL JOIN "...TABLE_PLYDATA..." WHERE map = '%s' ORDER BY MIN(time)", g_szCurrentMap );
+	FormatEx( szQuery, sizeof( szQuery ), "SELECT run, style, mode, time, uid FROM "...TABLE_RECORDS..." NATURAL JOIN "...TABLE_PLYDATA..." WHERE map = '%s' ORDER BY time ASC", g_szCurrentMap );
 	//SELECT run, style, mode, time, uid FROM maprecs NATURAL JOIN plydata WHERE map = 'jump_tholos' ORDER BY MIN(time)
 	SQL_TQuery( g_hDatabase, Threaded_Update_RankArray, szQuery, _, DBPrio_High );
 		
@@ -496,13 +496,11 @@ stock bool DB_SaveClientRecord( int client, float flNewTime )
 		}
 
 		if (flNewTime > g_flMapStartRankings[run][i][1])
-		{
-			PrintToChatAll("Found location in array for current run at %i", i);
-			
+		{			
 			//Since we've passed where our time would fit, i-1 is where it goes
-			g_flMapDuringRankings[run][i - 1][0] = g_iClientId[client];
+			g_flMapDuringRankings[run][i - 1][0] = float(g_iClientId[client]);
 			g_flMapDuringRankings[run][i - 1][1] = flNewTime;
-			g_flMapDuringRankings[run][i - 1][2] = mode;
+			g_flMapDuringRankings[run][i - 1][2] = float(mode);
 			
 			//Now we must shift the array down by one			
 			for(int j = (i + 1); j < MAX_DB_RECORDS;j++)
@@ -523,7 +521,7 @@ stock bool DB_SaveClientRecord( int client, float flNewTime )
 			
 			break;
 		}
-	}
+	}	
 	
 	//Set start=during?
 	

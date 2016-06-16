@@ -43,7 +43,7 @@ public Action Event_SayText2( UserMsg msg_id,
 //////////
 // CHAT //
 //////////
-public Action OnClientSayCommand( int client, const char[] szCommand, const char[] szArgs )
+/*public Action OnClientSayCommand( int client, const char[] szCommand, const char[] szArgs )
 {
 	if ( !client || BaseComm_IsClientGagged( client ) ) return Plugin_Continue;
 	
@@ -51,7 +51,7 @@ public Action OnClientSayCommand( int client, const char[] szCommand, const char
 	PrintToServer( "%N :  %s", client, szArgs );
 	
 	return Plugin_Handled;
-}
+}*/
 
 public Action Listener_Kill( int client, const char[] szCommand, int argc )
 {

@@ -1,4 +1,4 @@
-float EULERS_NUMBER = 2.71828182845904523536028747135266249775724709369995;
+float EULERS_NUMBER = 2.718281;
 
 //We run this function any time a user finishes either their first run, or a run that breaks a PB/record
 public void UpdatePointTotals(int client, char[] szName, int run, int style, int mode, float flNewTime, float flOldBestTime, float flPrevMapBest)
@@ -23,38 +23,24 @@ public void UpdatePointTotals(int client, char[] szName, int run, int style, int
 	}
 }
 
-public void SpamChatShit()
-{
-	for (int i = 0; i < MAX_DB_RECORDS;i++)
-	{
-		PrintToChatAll("Entry %i, time is %f", i, g_flMapDuringRankings[0][i][1]);
-		
-		if (g_flMapDuringRankings[0][i][1] <= TIME_INVALID)
-		{
-			break;
-		}
-	}
-}
-
 public int getCurrentCountByRun (int run)
 {
 	int ranks = 0;
 	
 	//Loop through max array size
-	for (int i = 0; i < MAX_DB_RECORDS;i++)
+	for (int i = 0; i < 10;i++)
 	{
-		//If it's a valid time, we add as much
-		if (!g_flMapDuringRankings[run][i][1] <= TIME_INVALID)
-		{
-			ranks++;
-		}
+        //If it's a valid time, we add as much
+        if (!g_flMapDuringRankings[run][i][1] <= TIME_INVALID)
+        {
+            ranks++;
+        }
 		//If it is not a valid time, we have reached the end of the array, don't check all remaining, just break
 		else
 		{
 			break;
 		}		
 	}
-	PrintToChatAll("Found %i ranks for run %i", ranks, run);
 	return ranks;
 }
 
@@ -65,11 +51,18 @@ public int PointsAwarded(float map_wr, float map_pb, int map_completions)
 	float scale_factor=0.0;
 	int points_awarded=0;
 	
-	wr_points = 200 *(50 + Logarithm(map_completions, EULERS_NUMBER));
+	float fl_mapCompletions = float(map_completions);
+	PrintToChatAll("Starting Points: map_wr=%f, map_pb=%f, fl_mapCompletions=%i, eulers=%f", map_wr, map_pb, fl_mapCompletions, EULERS_NUMBER);
+	PrintToChatAll("Logarithm calculates as: %f", Logarithm(fl_mapCompletions, EULERS_NUMBER));
 	
-	scale_factor = map_wr / (map_wr + (map_pb - map_wr) * Logarithm(map_completions, EULERS_NUMBER));
+	wr_points = 200 *(5 + Logarithm(fl_mapCompletions, EULERS_NUMBER));
+	PrintToChatAll("Points 1: wr_points=%f", wr_points);
+	
+	scale_factor = map_wr / (map_wr + (map_pb - map_wr) * Logarithm(fl_mapCompletions, EULERS_NUMBER));
+	PrintToChatAll("Points 2: scale_factor=%f", scale_factor);
 	
 	points_awarded = RoundFloat(wr_points * scale_factor);
+	PrintToChatAll("Points 3: points_awarded=%f", points_awarded);
 	
 	//PrintToChatAll("Calculation says, you earn %i points!", points_awarded);
 	

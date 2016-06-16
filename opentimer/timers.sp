@@ -54,7 +54,7 @@ public Action Timer_HudTimer( Handle hTimer )
         char hintOutput[256];        
 		
 		//KICK THOSE CHEATERS
-		BlockBounces(client);
+        BlockBounces(client);
 	
         // Dead? Find the player we're spectating.
         if ( !IsPlayerAlive( client ) )
@@ -179,12 +179,12 @@ public Action Timer_HudTimer( Handle hTimer )
 	                szBestTime);
 	        }
 	        
-	        if(g_bClientSpeedometerEnabled[client])
+            if(g_bClientSpeedometerEnabled[client])
 	        {
       		 	Format(hintOutput, 256, "%s\n \nSpeed\n%.0f", hintOutput, GetEntitySpeed(target));
       		}
-      		PrintHintText( client, hintOutput);
-      		continue;
+            PrintHintText( client, hintOutput);
+            continue;
         }
     }
    
@@ -469,21 +469,21 @@ public Action Timer_DrawBuildZoneStart( Handle hTimer, int client )
        
         g_nClientTick[mimic] = PLAYBACK_START;
 		
-		SetBotName(mimic);
-		SetClientFOV(mimic, 90);
-		
+        SetBotName(mimic);
+        SetClientFOV(mimic, 90);
+
         TF2_SetPlayerClass(mimic, ClassTypeFromMode(g_iClientMode[mimic]), true, true);
-		if (TF2_GetPlayerClass(mimic) == TFClass_Soldier)
+        if (TF2_GetPlayerClass(mimic) == TFClass_Soldier)
 		{
 			int weapon = GetPlayerWeaponSlot(mimic, TFWeaponSlot_Primary);
 			SetEntPropEnt(mimic, Prop_Send, "m_hActiveWeapon", weapon);
 		}		
-		if (TF2_GetPlayerClass(mimic) == TFClass_DemoMan)
+        if (TF2_GetPlayerClass(mimic) == TFClass_DemoMan)
 		{
 			int weapon = GetPlayerWeaponSlot(mimic, TFWeaponSlot_Secondary);
 			SetEntPropEnt(mimic, Prop_Send, "m_hActiveWeapon", weapon);
 		}
-		return Plugin_Handled;
+        return Plugin_Handled;
     }
  
     // TELEPORT TO START AND WAIT!
@@ -502,13 +502,13 @@ public Action Timer_DrawBuildZoneStart( Handle hTimer, int client )
 			int weapon = GetPlayerWeaponSlot(mimic, TFWeaponSlot_Primary);
 			SetEntPropEnt(mimic, Prop_Send, "m_hActiveWeapon", weapon);
 		}		
-		if (TF2_GetPlayerClass(mimic) == TFClass_DemoMan)
+        if (TF2_GetPlayerClass(mimic) == TFClass_DemoMan)
 		{
 			int weapon = GetPlayerWeaponSlot(mimic, TFWeaponSlot_Secondary);
 			SetEntPropEnt(mimic, Prop_Send, "m_hActiveWeapon", weapon);
 		}
 		
-		return Plugin_Handled;
+        return Plugin_Handled;
     }
  
     /*public Action Timer_Rec_Stop( Handle hTimer, int mimic )

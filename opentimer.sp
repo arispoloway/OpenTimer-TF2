@@ -876,12 +876,12 @@ public void OnPluginStart()
 	{
 		for (int j = 0; j < MAX_DB_RECORDS;j++)
 		{					
-			g_flMapStartRankings[i][j][0]=-1;
-			g_flMapStartRankings[i][j][1]=-1;
-			g_flMapStartRankings[i][j][2]=-1;
-			g_flMapDuringRankings[i][j][0]=-1;
-			g_flMapDuringRankings[i][j][1]=-1;
-			g_flMapDuringRankings[i][j][2]=-1;
+			g_flMapStartRankings[i][j][0]=-1.0;
+			g_flMapStartRankings[i][j][1]=-1.0;
+			g_flMapStartRankings[i][j][2]=-1.0;
+			g_flMapDuringRankings[i][j][0]=-1.0;
+			g_flMapDuringRankings[i][j][1]=-1.0;
+			g_flMapDuringRankings[i][j][2]=-1.0;
 		}
 	}
 }

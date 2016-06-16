@@ -1,9 +1,9 @@
 public void BlockBounces(int client)
 {	
 	//KICK THOSE CHEATERS
-	QueryClientConVar(client, "cl_showpos", ConVarQueryFinished:BlockShowpos, client);
-	QueryClientConVar(client, "cl_pitchdown", ConVarQueryFinished:BlockPitchDown, client);
-	QueryClientConVar(client, "cl_pitchup", ConVarQueryFinished:BlockPitchUp, client);	
+	QueryClientConVar(client, "cl_showpos", BlockShowpos, client);
+	QueryClientConVar(client, "cl_pitchdown", BlockPitchDown, client);
+	QueryClientConVar(client, "cl_pitchup", BlockPitchUp, client);	
 }
 
 public void BlockShowpos(QueryCookie cookie, int client, ConVarQueryResult result, char[] cvarName, char[] cvarValue)
